@@ -12,26 +12,26 @@ const routes = [
         name:'login',
         component:()=>import('../components/Login')
     },
-    // {
-    //     path:'/Register',
-    //     name:'register',
-    //     component:()=>import('../components/Register')
-    // },
-    // {
-    //     path:'/Index',
-    //     name:'index',
-    //     component:()=>import('../components/Index'),
-    //     children:[
-    //         {
-    //             path:'/Personal',
-    //             name:'personal',
-    //             meta:{
-    //                 title:'首页'
-    //             },
-    //             component:()=>import('../components/Personal'),
-    //         },
-    //     ]
-    // }
+    {
+        path:'/Register',
+        name:'register',
+        component:()=>import('../components/Register')
+    },
+    {
+        path:'/Index',
+        name:'index',
+        component:()=>import('../components/Index'),
+        children:[
+            // {
+            //     path:'/Personal',
+            //     name:'personal',
+            //     meta:{
+            //         title:'首页'
+            //     },
+            //     component:()=>import('../components/Personal'),
+            // },
+        ]
+    }
 ]
 
 

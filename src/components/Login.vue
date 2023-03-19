@@ -9,7 +9,6 @@
             status-icon
             :rules="loginRules"
             ref="loginForm"
-
             class="demo-loginForm">
           <div class="input">
           <el-form-item  prop="username">
@@ -134,10 +133,12 @@ export default {
   },
 
   methods:{
+    //点击忘记密码
     ForgetPwdBtn(){
       this.ForgetPwDialogVisible = true
       this.resetForgetPwdForm()
     },
+    //点击提交忘记密码
     subForgetPaw(){
       this.$refs.ForgetPwdForm.validate(valid => {
             if (valid) {
@@ -172,9 +173,8 @@ export default {
             }
       })
     },
-
+    //提交登陆表单
     submitForm() {
-
         this.$axios({
           method: "POST",
           url: this.$httpUrl+'/user/checkCode',
@@ -186,7 +186,6 @@ export default {
             //验证码正确
             this.login();
           } else {
-
             this.$message({
               message: '验证码错误',
               type: 'error'
@@ -195,9 +194,8 @@ export default {
 
         })
     },
-
+        //登陆逻辑
         login() {
-
           this.$refs.loginForm.validate(valid => {
             if (valid) {
               this.$axios({
@@ -206,7 +204,7 @@ export default {
                 data: this.loginForm
               }).then(res=>res.data).then(res => {
                 if (res.code == 200) {
-                  if(res.data.user.isvalid == "Y"){
+                  if(res.data.user.status == 1){
                   if (this.remember == true) {
                     this.setCookie(this.loginForm.username, this.loginForm.password, 7)
                   } else {
@@ -216,10 +214,10 @@ export default {
                   //存储
                   sessionStorage.setItem("userData", JSON.stringify(res.data.user));
 
-                  this.$store.commit("setMenu",res.data.menu)
+                  //this.$store.commit("setMenu",res.data.menu)
 
                   //登录成功跳转主页
-                  // this.$router.replace('/Index')
+                   this.$router.replace('/Index')
 
                   this.$message({
                     message: '恭喜你，登录成功',
