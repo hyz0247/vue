@@ -10,15 +10,28 @@ function addNewRoute(menuList){
     routes.forEach(routeItem=>{
         if(routeItem.path == '/Index'){
             menuList.forEach(menu=>{
+                if(menu.parentId == null){
                 let childRoute = {
-                        path:'/'+menu.menuclick,
-                        name:menu.menuname,
+                        path:'/'+menu.url,
+                        name:menu.name,
                         meta:{
-                            title:menu.menuname
+                            title:menu.name
                         },
-                        component:()=>import('../components/'+menu.menucomponent),
+                        component:()=>import('../components/'+menu.url),
+                        children:[]
                     }
                     routeItem.children.push(childRoute)
+                }else {
+                    let childRoute = {
+                        path:'/'+menu.url,
+                        name:menu.name,
+                        meta:{
+                            title:menu.name
+                        },
+                        component:()=>import('../components/'+menu.url),
+                    }
+                    menu.children.push(childRoute)
+                }
             })
         }
     })
@@ -37,8 +50,6 @@ export default new Vuex.Store({
     mutations:{
         setMenu(state,menuList) {
             state.menu = menuList
-
-
             addNewRoute(menuList)
 
         },

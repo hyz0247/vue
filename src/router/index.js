@@ -22,14 +22,14 @@ const routes = [
         name:'index',
         component:()=>import('../components/Index'),
         children:[
-            // {
-            //     path:'/Personal',
-            //     name:'personal',
-            //     meta:{
-            //         title:'首页'
-            //     },
-            //     component:()=>import('../components/Personal'),
-            // },
+            {
+                path:'/user/StudentManage',
+                name:'user',
+                meta:{
+                    title:'首页'
+                },
+                component:()=>import('../components/user/StudentManage'),
+            },
         ]
     }
 ]
