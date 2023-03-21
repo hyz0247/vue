@@ -3,17 +3,17 @@
     <el-menu background-color="#545c64" text-color="#ffffff"
              active-text-color="#ffd04b" class="el-menu-vertical-demo"
              router>
-      <!-- <el-menu-item :index="item.path" v-for="item in menu_data" :key="item.name">
-           <i :class="item.icon"></i>{{item.name}}
-       </el-menu-item>-->
 
-      <el-submenu :index="item.path" v-for="item in menu" :key="item.name">
-        <template slot="title"><i :class="item.icon"></i><span>{{item.name}}</span></template>
-
-        <el-menu-item :index="child.path" v-for="child in item.child" :key="child.name">
+      <template>
+      <el-submenu :index="item.url" v-for="item in menuList" :key="item.name">
+        <template  slot="title"><i :class="item.icon"></i><span>{{item.name}}</span></template>
+        <div v-for="child in menu" :key="child.name">
+        <el-menu-item v-if="item.id === child.parentId" :index="child.url"  :key="child.name">
           <i :class="child.icon"></i>{{child.name}}
         </el-menu-item>
+        </div>
       </el-submenu>
+      </template>
     </el-menu>
   </div>
 
@@ -21,17 +21,33 @@
 </template>
 
 <script>
+import router from "@/router";
 export default {
   name: "Aside",
+
   computed:{
     "menu":{
       get(){
         return this.$store.state.menu
       }
+    },
+    menuList: function () {
+      return this.menu.filter(function (list) {
+        return !list.parentId
+      })
     }
+
+
+
+
+  },
+  mounted() {
+    console.log(this.$store.state.menu)
+    console.log(router.options.routes)
   },
   data(){
     return {
+
       // menu_data:[
       //   {
       //     name:'一级菜单1',

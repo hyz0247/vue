@@ -214,7 +214,7 @@ export default {
                   //存储
                   sessionStorage.setItem("userData", JSON.stringify(res.data.user));
 
-                  this.$store.commit("setMenu",res.data.menu)
+                  this.$store.dispatch("setMenu",res.data.menu)
 
                   //登录成功跳转主页
                    this.$router.replace('/Index')
