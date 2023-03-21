@@ -21,16 +21,9 @@ const routes = [
         path:'/Index',
         name:'index',
         component:()=>import('../components/Index'),
-        // children:[
-        //     {
-        //         path:'/user/StudentManage',
-        //         name:'user',
-        //         meta:{
-        //             title:'首页'
-        //         },
-        //         component:()=>import('../components/user/StudentManage'),
-        //     },
-        // ]
+        children:[
+
+        ]
     }
 ]
 

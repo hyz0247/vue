@@ -8,7 +8,7 @@
       <el-submenu :index="item.url" v-for="item in menuList" :key="item.name">
         <template  slot="title"><i :class="item.icon"></i><span>{{item.name}}</span></template>
         <div v-for="child in menu" :key="child.name">
-        <el-menu-item v-if="item.id === child.parentId" :index="child.url"  :key="child.name">
+        <el-menu-item v-if="item.id === child.parentId" :index="'/'+child.url"  :key="child.name">
           <i :class="child.icon"></i>{{child.name}}
         </el-menu-item>
         </div>
@@ -21,7 +21,6 @@
 </template>
 
 <script>
-import router from "@/router";
 export default {
   name: "Aside",
 
@@ -42,8 +41,7 @@ export default {
 
   },
   mounted() {
-    console.log(this.$store.state.menu)
-    console.log(router.options.routes)
+
   },
   data(){
     return {
