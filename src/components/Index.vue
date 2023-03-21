@@ -1,6 +1,6 @@
 <template>
     <el-container class="body" style="height: 100%;width: 100%;overflow: clip">
-      <el-header>
+      <el-header style="background-color: #f8c9c9;">
         <Header></Header>
       </el-header>
 

@@ -1,9 +1,10 @@
 <template>
   <div style="height: 100%;">
-    <el-menu background-color="#545c64" text-color="#ffffff"
-             active-text-color="#ffd04b" class="el-menu-vertical-demo"
+    <el-menu background-color="#545c64"
+             text-color="#ffffff"
+             active-text-color="#ffd04b"
+             class="el-menu-vertical-demo"
              router>
-
       <template>
       <el-submenu :index="item.url" v-for="item in menuList" :key="item.name">
         <template  slot="title"><i :class="item.icon"></i><span>{{item.name}}</span></template>
