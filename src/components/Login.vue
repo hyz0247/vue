@@ -5,21 +5,12 @@
       <div class="pos">
         <h1 class="login">用户登录</h1>
         <el-form
-            :model="loginForm"
-            status-icon
-            :rules="loginRules"
-            ref="loginForm"
-            class="demo-loginForm">
+            :model="loginForm" status-icon :rules="loginRules" ref="loginForm" class="demo-loginForm">
           <div class="input">
           <el-form-item  prop="username">
             <label>账号：</label>
             <el-input
-                prefix-icon="el-icon-user"
-                style="width: 300px"
-                name="username"
-                ref="username"
-                type="text"
-                v-model="loginForm.username"
+                prefix-icon="el-icon-user" style="width: 300px" name="username" ref="username" type="text" v-model="loginForm.username"
             ></el-input>
           </el-form-item>
           </div>
@@ -27,11 +18,7 @@
           <el-form-item prop="password">
             <label>密码：</label>
             <el-input
-                prefix-icon="el-icon-menu"
-                style="width: 300px;"
-                show-password
-                name="password"
-                ref="password"
+                prefix-icon="el-icon-menu" style="width: 300px;" show-password name="password" ref="password"
                 type="password"
                 v-model="loginForm.password"
                 class="demo-inputForm"
@@ -195,7 +182,7 @@ export default {
         })
     },
         //登陆逻辑
-        login() {
+    login() {
           this.$refs.loginForm.validate(valid => {
             if (valid) {
               this.$axios({
@@ -212,7 +199,8 @@ export default {
                     this.setCookie('', '', -1)// 清除cookie
                   }
                   //存储
-                  sessionStorage.setItem("userData", JSON.stringify(res.data.user));
+                  sessionStorage.setItem("userData", JSON.stringify(res.data.personInfo));
+                    sessionStorage.setItem("user", JSON.stringify(res.data.user));
 
                   this.$store.dispatch("setMenu",res.data.menu)
 
@@ -276,19 +264,10 @@ export default {
       this.$refs.ForgetPwdForm.resetFields();
     },
 
-
   },
 
   data(){
-    let checkDuplicate =(rule,value,callback)=>{
-      this.$axios.get(this.$httpUrl+"/user/findByUsername?username="+this.ForgetPwdForm.username).then(res=>{
-        if(res.data.code == 200){
-          callback()
-        }else{
-          callback(new Error('账号不正确'));
-        }
-      })
-    };
+
     return {
 
         ForgetPwDialogVisible:false,
@@ -306,21 +285,7 @@ export default {
             password:'',
             password1:''
         },
-        ForgetRules:{
-            username: [
-              { required: true,message:'请输入用户名', trigger: "blur"},
-              {validator:checkDuplicate,trigger: 'blur'}
-            ],
-            email: [
-              { required: true,message:'请输入邮箱',  trigger: "blur"}
-            ],
-            password: [
-              { required: true,message:'请输入密码',  trigger: "blur"}
-            ],
-            password1: [
-              { required: true,message:'请再次输入密码',  trigger: "blur"}
-            ],
-        },
+
         loginRules: {
             username: [
               { required: true,message:'请输入用户名', trigger: "blur", }

@@ -1,17 +1,22 @@
 <template>
-  <el-form :model="ruleForm" status-icon :rules="rules" ref="ruleForm" label-width="100px" class="demo-ruleForm">
-    <el-form-item label="原密码" prop="oldPass">
-      <el-input type="password" v-model="ruleForm.oldPass" autocomplete="off"></el-input>
+  <el-form :model="ModPassForm"
+           status-icon
+           :rules="ModRules"
+           ref="ModPassForm"
+           label-width="100px"
+           class="demo-ruleForm">
+    <el-form-item label="旧密码" prop="oldPass">
+      <el-input type="password" show-password v-model="ModPassForm.oldPass"></el-input>
     </el-form-item>
     <el-form-item label="密码" prop="pass">
-      <el-input type="password" v-model="ruleForm.pass" autocomplete="off"></el-input>
+      <el-input type="password" show-password v-model="ModPassForm.pass"></el-input>
     </el-form-item>
     <el-form-item label="确认密码" prop="checkPass">
-      <el-input v-model.number="ruleForm.checkPass"></el-input>
+      <el-input type="password" show-password v-model="ModPassForm.checkPass"></el-input>
     </el-form-item>
     <el-form-item>
-      <el-button type="primary" @click="submitForm('ruleForm')">提交</el-button>
-      <el-button @click="resetForm('ruleForm')">重置</el-button>
+      <el-button type="primary" @click="submitForm">确认</el-button>
+      <el-button @click="resetForm">重置</el-button>
     </el-form-item>
   </el-form>
 </template>
@@ -20,61 +25,83 @@
 export default {
   name: "ModPassword",
   data() {
-    var checkOldPass = (rule, value, callback) => {
-      if (!value) {
-        return callback(new Error('原密码不能为空'));
-      }
+    let checkDuplicate =(rule,value,callback)=>{
+      this.$axios.get(this.$httpUrl+"/user/findPwd?username="+this.user.username+"&pwd="+this.ModPassForm.oldPass).then(res=>{
+        if(res.data.code == 200){
+          callback()
+        }else{
 
+          callback(new Error('旧密码不正确'));
+        }
+      })
     };
-    var validatePass = (rule, value, callback) => {
-      if (value === '') {
-        callback(new Error('请输入密码'));
-      } else {
-        callback();
-      }
-    };
-    var validatePass2 = (rule, value, callback) => {
-      if (value === '') {
-        callback(new Error('请再次输入密码'));
-      } else if (value !== this.ruleForm.pass) {
-        callback(new Error('两次输入密码不一致!'));
-      } else {
-        callback();
-      }
-    };
+
     return {
-      ruleForm: {
+      user:JSON.parse(sessionStorage.getItem('user')),
+      ModPassForm: {
         oldPass: '',
         pass:'',
         checkPass: '',
 
       },
-      rules: {
+      ModRules: {
         oldPass: [
-          { validator: checkOldPass, trigger: 'blur' }
+          { required: true, message:"请输入旧密码", trigger: 'blur' },
+          {validator:checkDuplicate,trigger: 'blur'}
         ],
         pass: [
-          { validator: validatePass, trigger: 'blur' }
+          { required: true, message:"请输入密码", trigger: 'blur' }
         ],
         checkPass: [
-          { validator: validatePass2, trigger: 'blur' }
+          { required: true, message:"请输入确认密码", trigger: 'blur' }
         ]
       }
     };
   },
   methods: {
+    //提交修改密码
     submitForm() {
-      this.$refs.ruleForm.validate((valid) => {
+      this.$refs.ModPassForm.validate(valid => {
         if (valid) {
-          alert('submit!');
-        } else {
-          console.log('error submit!!');
-          return false;
+          if (this.ModPassForm.pass != this.ModPassForm.checkPass) {
+            this.$message({
+              message: '两次输入的密码不相同',
+              type: 'warning'
+            })
+          } else {
+            this.$axios({
+              method: "POST",
+              url: this.$httpUrl+'/user/modifyPwd',
+              data: {
+                id:this.user.id,
+                password:this.ModPassForm.pass+''
+              }
+            }).then(res=>res.data).then(res => {
+              if (res.code == 200) {
+
+                this.$nextTick(()=>{
+                  this.resetForm()
+                })
+                this.$message({
+                  message: '恭喜你，修改成功',
+                  type: 'success'
+                })
+
+              } else {
+                this.$message({
+                  message: '修改失败',
+                  type: 'error'
+                })
+              }
+
+            })
+          }
         }
-      });
+      })
     },
+    //重置
     resetForm() {
-      this.$refs.ruleForm.resetFields();
+      this.$refs.ModPassForm.resetFields();
     }
   }
 }

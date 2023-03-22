@@ -1,11 +1,11 @@
 <template>
-    <el-container class="body" style="height: 100%;width: 100%;overflow: clip">
+    <el-container class="body" style="width: 100%;height: 100vh">
       <el-header style="background-color: #f8c9c9;">
         <Header></Header>
       </el-header>
 
       <el-container>
-        <el-aside width="200px"  style="background-color: #f8c9c9; height: 100vh">
+        <el-aside width="200px"  style="background-color: #f8c9c9; height: 100%">
           <Aside></Aside>
         </el-aside>
 <div>
