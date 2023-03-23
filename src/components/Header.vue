@@ -6,12 +6,9 @@
   <div style="flex: 1;text-align: center;font-size: 40px;color: #333333;font-family: 华文中宋;height: 40px;margin-left: 260px">
     <span >欢迎来到后台管理系统</span>
   </div>
-    <img :src="imgUrl" class="picture" style="border-radius: 50%;
-        width: 50px;height: 50px;margin:8px 20px;z-index:1;cursor: pointer"
-         @click="toUser" >
     <el-dropdown>
       <span style="margin-right: 5px;color: #333333">{{user.name}}
-      <i class="el-icon-arrow-down" style="margin-left: -5px"></i>
+      <i class="el-icon-arrow-down" style="margin-left: 0px"></i>
       </span>
       <el-dropdown-menu slot="dropdown" class="cai">
         <el-dropdown-item @click.native="toUser">个人中心</el-dropdown-item>

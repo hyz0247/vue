@@ -54,7 +54,7 @@
       <el-input type="textarea" v-model="studentInfoForm.introduce"></el-input>
     </el-form-item>
     <el-form-item>
-      <el-button type="primary" @click="submitForm">修改</el-button>
+      <el-button type="primary" @click="submitForm(1)">修改</el-button>
     </el-form-item>
   </el-form>
 
@@ -76,7 +76,7 @@
       <el-input v-model="adminInfoForm.email" style="width: 300px"></el-input>
     </el-form-item>
     <el-form-item>
-      <el-button type="primary" @click="submitForm">修改</el-button>
+      <el-button type="primary" @click="submitForm(0)">修改</el-button>
     </el-form-item>
   </el-form>
 
@@ -85,9 +85,9 @@
       <el-form-item label="身份" prop="role">
         <el-tag type="success" disable-transitions>学校/学院</el-tag>
       </el-form-item>
-      <el-form-item  prop="upload">
+      <el-form-item label="logo" prop="upload">
         <el-upload
-            style="width: 80px;height: 80px;border-radius: 50%; margin:10px 140px;;box-sizing: border-box;background-size:cover"
+            style="width: 85px;height: 85px;border-radius: 50%; margin:0px 80px;box-sizing: border-box;background-size:cover"
             class="avatar-uploader"
             action="http://localhost:8082/user/toUploadAvatar"
             :show-file-list="false"
@@ -105,7 +105,17 @@
         <el-input v-model="universityInfoForm.name" style="width: 300px"></el-input>
       </el-form-item>
       <el-form-item label="地址" prop="address">
-        <el-input v-model="universityInfoForm.address" style="width: 300px"></el-input>
+        <el-row>
+        <el-cascader
+            style="width: 300px"
+            size="large"
+            placeholder="请选择省/市/县 + 详细地址------>"
+            :options="options"
+            v-model="selectedOptions"
+            @change="handleChange">
+        </el-cascader>
+        <el-input placeholder="详细地址" v-model="universityInfoForm.address" style="width:400px; margin-left: 10px" clearable></el-input>
+        </el-row>
       </el-form-item>
       <el-form-item label="电话" prop="contactName">
         <el-input v-model="universityInfoForm.contactName" style="width: 300px"></el-input>
@@ -117,68 +127,117 @@
         <el-input v-model="universityInfoForm.email" style="width: 300px"></el-input>
       </el-form-item>
       <el-form-item label="学校描述" prop="description">
-        <el-input type="textarea" v-model="universityInfoForm.description"></el-input>
+        <el-input type="textarea" v-model="universityInfoForm.description" style="width: 300px"></el-input>
       </el-form-item>
       <el-form-item label="学校网站地址" prop="website">
         <el-input v-model="universityInfoForm.website" style="width: 300px"></el-input>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="submitForm">修改</el-button>
+        <el-button type="primary" @click="submitForm(2)">修改</el-button>
       </el-form-item>
     </el-form>
 
     <!--    单位信息表-->
-    <el-form v-if="user.roleId === 3" :model="adminInfoForm" :rules="adminInfoRules" ref="studentInfoForm" label-width="150px">
+    <el-form v-if="user.roleId === 3" :model="unitInfoForm" :rules="unitRules" ref="studentInfoForm" label-width="150px">
       <el-form-item label="身份" prop="role">
         <el-tag type="success" disable-transitions>单位</el-tag>
       </el-form-item>
-      <el-form-item label="姓名" prop="name">
-        <el-input v-model="adminInfoForm.name" style="width: 300px"></el-input>
+      <el-form-item label="logo">
+        <el-upload
+            style="width: 85px;height: 85px;border-radius: 50%; margin:0px 80px;box-sizing: border-box;background-size:cover"
+            class="avatar-uploader"
+            action="http://localhost:8082/user/toUploadAvatar"
+            :show-file-list="false"
+            accept=".jpg,.png,.gif"
+            :on-success="handleAvatarSuccessUnit"
+            :before-upload="beforeAvatarUpload">
+          <img v-if="unitInfoForm.logo" :src="unitInfoForm.logo" class="avatar" title="更换头像" style="width: 80px;height: 80px">
+          <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+        </el-upload>
       </el-form-item>
-      <el-form-item label="地址" prop="addres">
-        <el-input v-model="adminInfoForm.addres" disabled style="width: 300px"></el-input>
+      <el-form-item label="用户名" prop="username">
+        <el-input v-model="unitInfoForm.username" disabled style="width: 300px"></el-input>
       </el-form-item>
-
-      <el-form-item label="电话" prop="phone">
-        <el-input v-model="adminInfoForm.phone" style="width: 300px"></el-input>
+      <el-form-item label="单位名称" prop="name">
+        <el-input v-model="unitInfoForm.name" style="width: 300px"></el-input>
+      </el-form-item>
+      <el-form-item label="联系人名字" prop="contactName">
+        <el-input v-model="unitInfoForm.contactName"  style="width: 300px"></el-input>
+      </el-form-item>
+      <el-form-item label="联系人电话" prop="contactPhone">
+        <el-input v-model="unitInfoForm.contactPhone" style="width: 300px"></el-input>
       </el-form-item>
       <el-form-item label="邮箱" prop="email">
-        <el-input v-model="adminInfoForm.email" style="width: 300px"></el-input>
+        <el-input v-model="unitInfoForm.email" style="width: 300px"></el-input>
+      </el-form-item>
+      <el-form-item label="地址" prop="address">
+        <el-row>
+          <el-cascader
+              style="width: 300px"
+              size="large"
+              placeholder="请选择省/市/县 + 详细地址------>"
+              :options="options"
+              v-model="selectedOptions"
+              @change="handleChange">
+          </el-cascader>
+          <el-input placeholder="详细地址" v-model="unitInfoForm.address" style="width:400px; margin-left: 10px" clearable></el-input>
+        </el-row>
+      </el-form-item>
+      <el-form-item label="单位描述" prop="description">
+        <el-input type="textarea" v-model="unitInfoForm.description"></el-input>
+      </el-form-item>
+      <el-form-item label="单位网站地址" prop="website">
+        <el-input v-model="unitInfoForm.website" style="width: 300px"></el-input>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" @click="submitForm">修改</el-button>
+        <el-button type="primary" @click="submitForm(3)">修改</el-button>
       </el-form-item>
     </el-form>
   </div>
 </template>
 
 <script>
+import { regionData } from 'element-china-area-data'
+import {CodeToText} from "element-china-area-data/dist/app";
 export default {
   name: "PersonInformation",
+
   mounted() {
     switch (this.user.roleId){
       case 0: this.adminInfoForm = this.userData
-              this.adminInfoForm.username = this.user.username
-            break;
+        this.adminInfoForm.username = this.user.username
+        this.adminInfoForm.userId = this.user.id
+        break;
       case 1:this.studentInfoForm = this.userData
-             this.studentInfoForm.username = this.user.username
+        this.studentInfoForm.username = this.user.username
+        this.studentInfoForm.userId = this.user.id
         break;
       case 2:this.universityInfoForm = this.userData
-             this.universityInfoForm.username = this.user.username
+        this.universityInfoForm.username = this.user.username
+        this.universityInfoForm.userId = this.user.id
         break;
       case 3:this.unitInfoForm = this.userData
-             this.unitInfoForm.username = this.user.username
+        this.unitInfoForm.username = this.user.username
+          this.unitInfoForm.userId = this.user.id
         break;
     }
   },
+  created() {
+    this.user = JSON.parse(sessionStorage.getItem('user'))
+    this.userData = JSON.parse(sessionStorage.getItem('userData'))
+  },
   data(){
     return{
-      user:JSON.parse(sessionStorage.getItem('user')),
-      userData:JSON.parse(sessionStorage.getItem('userData')),
-      //学校信息表
+      options: regionData ,
+      selectedOptions: [],
+      user:'',
+      userData:'',
+      area:'',
+      //学生信息表
       studentInfoForm: {
+        id:'',
         role:'',
-        username: '',
+        username: "",
         name: '',
         phone: '',
         email: '',
@@ -190,7 +249,7 @@ export default {
         level:'',
         introduce:''
       },
-      //学校信息表校验
+      //学生信息表校验
       studentInfoRules: {
         name: [
           { required: true, message: '请输入名字', trigger: 'blur' }
@@ -222,8 +281,9 @@ export default {
       },
       //管理员信息表
       adminInfoForm:{
+        id:'',
         role:'',
-        username:'',
+        username:"",
         name:'',
         phone:'',
         email:''
@@ -243,8 +303,10 @@ export default {
       },
       //学校信息表
       universityInfoForm:{
+        id:'',
         role:'',
         userId:'',
+        username:'',
         name:'',
         address:'',
         email:'',
@@ -258,29 +320,178 @@ export default {
       },
       //学校信息表校验
       universityRules:{
-
+        name: [
+          { required: true, message: '请输入名字', trigger: 'blur' }
+        ],
+        // address: [
+        //   {required: true, message: '请输入地址', trigger: 'change' }
+        // ],
+        email: [
+          {required: true, message: '请输入邮箱', trigger: 'blur' }
+        ],
+        contactName: [
+          { required: true, message: '请输入联系人名字', trigger: 'blur' }
+        ],
+        contactPhone: [
+          { required: true, message: '请输入联系人电话', trigger: 'blur' }
+        ],
+        description: [
+          {required: true, message: '请输入单位描述', trigger: 'blur' }
+        ],
+        website: [
+          {required: true, message: '请输入单位网站', trigger: 'blur' }
+        ],
       },
       //单位信息表
       unitInfoForm:{
+        id:'',
+        role:'',
+        userId:'',
+        username:'',
+        name:'',
+        address:'',
+        email:'',
+        contactName:'',
+        contactPhone:'',
+        description:'',
+        logo:'',
+        website:'',
 
       },
       //单位信息表校验
       unitRules:{
-
+        name: [
+          { required: true, message: '请输入单位名字', trigger: 'blur' }
+        ],
+        email: [
+          {required: true, message: '请输入邮箱', trigger: 'blur' }
+        ],
+        contactName: [
+          { required: true, message: '请输入联系人名字', trigger: 'blur' }
+        ],
+        contactPhone: [
+          { required: true, message: '请输入联系人电话', trigger: 'blur' }
+        ],
+        description: [
+          {required: true, message: '请输入单位描述', trigger: 'blur' }
+        ],
+        website: [
+          {required: true, message: '请输入单位网站', trigger: 'blur' }
+        ],
       },
 
     };
   },
   methods: {
-    submitForm() {
-      this.$refs.studentInfoForm.validate((valid) => {
-        if (valid) {
-          alert('submit!');
-        } else {
-          console.log('error submit!!');
-          return false;
-        }
-      });
+    handleChange () {
+      var loc = "";
+      for (let i = 0; i < this.selectedOptions.length; i++) {
+        loc += CodeToText[this.selectedOptions[i]];
+      }
+
+      this.area = loc
+
+
+    },
+    //提交修改信息
+    submitForm(roleId) {
+      switch (roleId){
+        //管理员
+        case 0:
+            this.$axios({
+            method:'POST',
+            url:this.$httpUrl+'/user/modifyAdmin',
+            data: this.adminInfoForm
+          }).then(res=>res.data).then(res=>{
+            if(res.code == 200){
+
+                this.$message({
+                  message: '修改成功',
+                  type: 'success'
+                });
+                  sessionStorage.setItem("userData",JSON.stringify(res.data))
+            }else{
+                this.$message({
+                  message: '修改失败',
+                  type: 'error'
+                });
+            }
+          })
+              break;
+          //学生
+        case 1:
+            this.$axios({
+              method:'POST',
+              url:this.$httpUrl+'/user/modifyStudent',
+              data: this.studentInfoForm
+            }).then(res=>res.data).then(res=>{
+              if(res.code == 200){
+
+                this.$message({
+                  message: '修改成功',
+                  type: 'success'
+                });
+                sessionStorage.setItem("userData",JSON.stringify(res.data))
+              }else{
+                this.$message({
+                  message: '修改失败',
+                  type: 'error'
+                });
+              }
+            })
+            break;
+          //学校
+        case 2:
+          this.universityInfoForm.address = this.area + this.universityInfoForm.address
+            this.$axios({
+              method:'POST',
+              url:this.$httpUrl+'/user/modifyUniversity',
+              data: this.universityInfoForm
+            }).then(res=>res.data).then(res=>{
+              if(res.code == 200){
+
+                this.$message({
+                  message: '修改成功',
+                  type: 'success'
+                });
+                sessionStorage.setItem("userData",JSON.stringify(res.data))
+              }else{
+                this.$message({
+                  message: '修改失败',
+                  type: 'error'
+                });
+              }
+            })
+            break;
+          //单位
+        case 3:
+          this.unitInfoForm.address = this.area + this.unitInfoForm.address
+          console.log(this.unitInfoForm)
+          this.$axios({
+            method:'POST',
+            url:this.$httpUrl+'/user/modifyUnit',
+            data: this.unitInfoForm
+          }).then(res=>res.data).then(res=>{
+            if(res.code == 200){
+
+
+              this.$message({
+                message: '修改成功',
+                type: 'success'
+              });
+              sessionStorage.setItem("userData",JSON.stringify(res.data))
+            }else{
+              this.$message({
+                message: '修改失败',
+                type: 'error'
+              });
+            }
+          })
+          break;
+
+
+
+      }
     },
 
     //处理上传头像成功后
@@ -288,6 +499,11 @@ export default {
       this.universityInfoForm.logo = URL.createObjectURL(file.raw);
       this.universityInfoForm.logo = res.imgUrl
     },
+    handleAvatarSuccessUnit(res, file) {
+      this.unitInfoForm.logo = URL.createObjectURL(file.raw);
+      this.unitInfoForm.logo = res.imgUrl
+    },
+
     beforeAvatarUpload(file) {
       //在头像上传之前需要做的判断，如判断文件格式
       const isJPG = file.type === 'image/jpeg';
@@ -295,10 +511,12 @@ export default {
     },
 
 
+
   }
 }
 </script>
 
 <style scoped>
+
 
 </style>

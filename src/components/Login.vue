@@ -55,55 +55,9 @@
       </div>
     </div>
 
-      <a class="drop" style="cursor: pointer;"
-         @click="toRegister"><h4>注册</h4></a>
-      <a class="drops" style="cursor: pointer;"
-        @click="ForgetPwdBtn"><h4>忘记密码</h4></a>
-
   </div>
 
 
-<div class="forget">
-    <el-dialog
-        title="修改密码"
-        :visible.sync="ForgetPwDialogVisible"
-        center>
-      <el-form ref="ForgetPwdForm"
-               :model="ForgetPwdForm"
-               :rules="ForgetRules"
-               label-width="80px">
-
-        <el-form-item prop="username">
-          <label >账号:</label>
-          <el-col :span="20">
-            <el-input v-model="ForgetPwdForm.username"></el-input>
-          </el-col>
-        </el-form-item>
-        <el-form-item  prop="email">
-          <label>邮箱:</label>
-          <el-col :span="20">
-            <el-input v-model="ForgetPwdForm.email"></el-input>
-          </el-col>
-        </el-form-item>
-        <el-form-item  prop="password">
-          <label>密码:</label>
-          <el-col :span="20">
-            <el-input type="password" v-model="ForgetPwdForm.password"></el-input>
-          </el-col>
-        </el-form-item>
-        <el-form-item  prop="password1">
-          <label style="margin-left: -380px">确认密码:</label>
-          <el-col :span="20">
-            <el-input type="password" v-model="ForgetPwdForm.password1"></el-input>
-          </el-col>
-        </el-form-item>
-      </el-form>
-      <span slot="footer" class="dialog-footer">
-          <el-button @click="ForgetPwDialogVisible = false">取 消</el-button>
-          <el-button type="primary" @click="subForgetPaw">确 定</el-button>
-          </span>
-    </el-dialog>
-</div>
   </div>
 
 </template>
@@ -120,46 +74,8 @@ export default {
   },
 
   methods:{
-    //点击忘记密码
-    ForgetPwdBtn(){
-      this.ForgetPwDialogVisible = true
-      this.resetForgetPwdForm()
-    },
-    //点击提交忘记密码
-    subForgetPaw(){
-      this.$refs.ForgetPwdForm.validate(valid => {
-            if (valid) {
-              if (this.ForgetPwdForm.password != this.ForgetPwdForm.password1) {
-                this.$message({
-                  message: '两次输入的密码不相同',
-                  type: 'warning'
-                })
-              }else{
-                this.$axios({
-                  method: "POST",
-                  url: this.$httpUrl+'/user/findPwd',
-                  data: this.ForgetPwdForm
-                }).then(res=>res.data).then(res => {
-                  if (res.code == 200) {
 
-                    this.resetForgetPwdForm()
-                    this.$message({
-                      message: '恭喜你，修改成功',
-                      type: 'success'
-                    })
-                  } else {
-                    this.$message({
-                      message: '修改失败,请输入正确的账号或邮箱',
-                      type: 'warning'
-                    })
-                  }
 
-                })
-              }
-
-            }
-      })
-    },
     //提交登陆表单
     submitForm() {
         this.$axios({
@@ -200,7 +116,7 @@ export default {
                   }
                   //存储
                   sessionStorage.setItem("userData", JSON.stringify(res.data.personInfo));
-                    sessionStorage.setItem("user", JSON.stringify(res.data.user));
+                  sessionStorage.setItem("user", JSON.stringify(res.data.user));
 
                   this.$store.dispatch("setMenu",res.data.menu)
 
@@ -257,12 +173,7 @@ export default {
       this.imgUrl = this.$httpUrl+'/user/newCode?'+new Date().getUTCMilliseconds();
     },
 
-    toRegister(){
-      this.$router.replace('/Register')
-    },
-    resetForgetPwdForm(){
-      this.$refs.ForgetPwdForm.resetFields();
-    },
+
 
   },
 
@@ -270,7 +181,6 @@ export default {
 
     return {
 
-        ForgetPwDialogVisible:false,
         remember:false,
         imgUrl: this.$httpUrl+'/user/newCode',
 
@@ -278,12 +188,6 @@ export default {
             username: "",
             password: "",
             checkCode:"",
-        },
-        ForgetPwdForm:{
-            username: "",
-            email: "",
-            password:'',
-            password1:''
         },
 
         loginRules: {

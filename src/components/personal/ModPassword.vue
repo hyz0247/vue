@@ -24,6 +24,8 @@
 <script>
 export default {
   name: "ModPassword",
+  mounted() {
+  },
   data() {
     let checkDuplicate =(rule,value,callback)=>{
       this.$axios.get(this.$httpUrl+"/user/findPwd?username="+this.user.username+"&pwd="+this.ModPassForm.oldPass).then(res=>{

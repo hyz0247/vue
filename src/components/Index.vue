@@ -25,7 +25,8 @@ export default {
   components: { Header, Aside},
   data(){
     return{
-
+      user:JSON.parse(sessionStorage.getItem('user')),
+      userData:JSON.parse(sessionStorage.getItem('userData')),
     }
   },
   methods:{
