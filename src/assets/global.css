@@ -163,6 +163,7 @@ overflow: hidden;
     border-bottom: 3px solid black;
     padding-top: 60px;
     font-size: 15px;
+    margin-right:300px ;
 
 }
 
@@ -170,6 +171,7 @@ overflow: hidden;
     background-color: transparent;
     padding: 20px;
     width: 400px;
+    margin:0 auto;
 
 
 }
@@ -177,6 +179,37 @@ overflow: hidden;
     background-color: transparent;
     border: none;
     border-radius: 10px;
-    width: 200px;
+    width: 120px;
 
+}
+.el-descriptions-item__cell .el-descriptions-item__label.is-bordered-label{
+    margin-left: 30px;
+}
+.el-tooltip__popper {
+    max-width: 180px;
+    max-height: 94px;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 5;
+    -webkit-box-orient: vertical;
+    clip-path: polygon(0% 0%, 100% 0%, 100% 100%, calc(50% + 6px) 100%, 50% calc(100% + 6px), calc(50% - 6px) 100%, 0% 100%);
+}
+/*.el-descriptions-item__content {*/
+/*    white-space: nowrap;*/
+/*    overflow: hidden;*/
+/*    text-overflow: ellipsis;*/
+/*}*/
+/*.long-content .el-descriptions-item__content{*/
+/*    white-space: nowrap;*/
+/*    overflow: hidden;*/
+/*    text-overflow: ellipsis;*/
+/*}*/
+
+.el-descriptions .is-bordered .el-descriptions-item__cell{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.el-cascader .el-input .el-input__inner{
+    height: 32px;
 }

@@ -24,24 +24,27 @@
       </el-radio-group>
     </el-form-item>
     <el-form-item label="所在学校" prop="university">
-      <el-input v-model="studentInfoForm.university" style="width: 300px"></el-input>
+      <el-select v-model="studentInfoForm.universityId" placeholder="请选择您所在的学校" filterable style="width: 200px">
+        <el-option
+            v-for="item in universityData"
+            :key="item.userId"
+            :label="item.name"
+            :value="item.userId">
+        </el-option>
+      </el-select>
     </el-form-item>
     <el-form-item label="专业" prop="major">
       <el-input v-model="studentInfoForm.major" style="width: 300px"></el-input>
     </el-form-item>
     <el-form-item label="出生日期" required>
-      <el-col :span="11">
         <el-form-item prop="birthday">
-          <el-date-picker type="date" placeholder="选择日期" v-model="studentInfoForm.birthday" style="width: 100%;"></el-date-picker>
+          <el-date-picker value-format='yyyy-MM-dd' type="date" placeholder="选择日期" v-model="studentInfoForm.birthday" style="width: 300px"></el-date-picker>
         </el-form-item>
-      </el-col>
     </el-form-item>
     <el-form-item label="毕业年份" required>
-      <el-col :span="11">
         <el-form-item prop="graduationYear">
-          <el-date-picker type="year" placeholder="选择日期" v-model="studentInfoForm.graduationYear" style="width: 100%;"></el-date-picker>
+          <el-date-picker value-format='yyyy' type="year" placeholder="选择日期" v-model="studentInfoForm.graduationYear" style="width: 300px"></el-date-picker>
         </el-form-item>
-      </el-col>
     </el-form-item>
     <el-form-item label="学历" prop="level">
       <el-select v-model="studentInfoForm.level" placeholder="请选择学历">
@@ -50,8 +53,49 @@
         <el-option label="硕士及以上" value="2"></el-option>
       </el-select>
     </el-form-item>
+      <el-form-item label="工作意向">
+        <el-row>
+          <el-select v-model="studentInfoForm.job1Id" placeholder="工作意向1" filterable style="width: 120px">
+            <el-option
+                v-for="item in jobData"
+                :key="item.id"
+                :label="item.title"
+                :value="item.id">
+            </el-option>
+          </el-select>
+          <el-select v-model="studentInfoForm.job2Id" placeholder="工作意向2" filterable style="width: 120px;margin-left: 2px">
+            <el-option
+                v-for="item in jobData"
+                :key="item.id"
+                :label="item.title"
+                :value="item.id">
+            </el-option>
+          </el-select>
+          <el-select v-model="studentInfoForm.job3Id" placeholder="工作意向3" filterable style="width: 120px;margin-left: 2px">
+            <el-option
+                v-for="item in jobData"
+                :key="item.id"
+                :label="item.title"
+                :value="item.id">
+            </el-option>
+          </el-select>
+        </el-row>
+      </el-form-item>
+      <el-form-item label="个人简历" prop="resume">
+        <el-upload
+            :limit="2"
+            :on-change="handleChangeFile"
+            :on-success="handleSuccess"
+            accept=".doc,.docx"
+            action="http://localhost:8082/user/toUploadFile"
+            v-model="studentInfoForm.resume">
+          <div><i class="el-icon-upload" /> 添加文件</div>
+          <div slot="tip" class="el-upload__tip">可上传文件不超过10M</div>
+        </el-upload>
+<!--        <el-button type="primary" @click="upload">确认上传</el-button>-->
+      </el-form-item>
     <el-form-item label="个人经历/个人简介" prop="introduce">
-      <el-input type="textarea" v-model="studentInfoForm.introduce"></el-input>
+      <el-input type="textarea" v-model="studentInfoForm.introduce" style="width: 300px"></el-input>
     </el-form-item>
     <el-form-item>
       <el-button type="primary" @click="submitForm(1)">修改</el-button>
@@ -94,7 +138,7 @@
             accept=".jpg,.png,.gif"
             :on-success="handleAvatarSuccess"
             :before-upload="beforeAvatarUpload">
-          <img v-if="universityInfoForm.logo" :src="universityInfoForm.logo" class="avatar" title="更换头像" style="width: 80px;height: 80px">
+          <img v-if="imgUniv" :src="imgUniv" class="avatar" title="更换头像" style="width: 80px;height: 80px">
           <i v-else class="el-icon-plus avatar-uploader-icon"></i>
         </el-upload>
       </el-form-item>
@@ -151,7 +195,7 @@
             accept=".jpg,.png,.gif"
             :on-success="handleAvatarSuccessUnit"
             :before-upload="beforeAvatarUpload">
-          <img v-if="unitInfoForm.logo" :src="unitInfoForm.logo" class="avatar" title="更换头像" style="width: 80px;height: 80px">
+          <img v-if="imgUnit" :src="imgUnit" class="avatar" title="更换头像" style="width: 80px;height: 80px">
           <i v-else class="el-icon-plus avatar-uploader-icon"></i>
         </el-upload>
       </el-form-item>
@@ -197,11 +241,16 @@
 </template>
 
 <script>
-import { regionData } from 'element-china-area-data'
+import { regionData } from 'element-china-area-data';
 import {CodeToText} from "element-china-area-data/dist/app";
 export default {
   name: "PersonInformation",
 
+
+  beforeMount() {
+    this.loadUniversity()
+    this.loadJob()
+  },
   mounted() {
     switch (this.user.roleId){
       case 0: this.adminInfoForm = this.userData
@@ -210,15 +259,17 @@ export default {
         break;
       case 1:this.studentInfoForm = this.userData
         this.studentInfoForm.username = this.user.username
-        this.studentInfoForm.userId = this.user.id
+        this.studentInfoForm.studentId = this.user.id
         break;
       case 2:this.universityInfoForm = this.userData
         this.universityInfoForm.username = this.user.username
         this.universityInfoForm.userId = this.user.id
+          this.imgUniv = this.userData.logo
         break;
       case 3:this.unitInfoForm = this.userData
         this.unitInfoForm.username = this.user.username
           this.unitInfoForm.userId = this.user.id
+        this.imgUnit = this.userData.logo
         break;
     }
   },
@@ -228,11 +279,20 @@ export default {
   },
   data(){
     return{
+      universityData:[],
+      jobData:[],
       options: regionData ,
       selectedOptions: [],
       user:'',
       userData:'',
+      imgUnit:'',
+      imgUniv:'',
       area:'',
+      resume:{
+        id:'',
+        studentId:'',
+        url:''
+      },
       //学生信息表
       studentInfoForm: {
         id:'',
@@ -242,12 +302,17 @@ export default {
         phone: '',
         email: '',
         gender: '',
-        university: '',
+        studentId:'',
+        universityId: '',
         major: '',
         birthday: '',
         graduationYear:'',
         level:'',
-        introduce:''
+        resume:'',
+        introduce:'',
+        job1Id:'',
+        job2Id:'',
+        job3Id:''
       },
       //学生信息表校验
       studentInfoRules: {
@@ -267,13 +332,13 @@ export default {
           { required: true, message: '请输入您的专业', trigger: 'blur' }
         ],
         birthday: [
-          { type:'date', required: true, message: '请选择出生日期', trigger: 'change' }
+          { type:'date', required: true, message: '请选择出生日期', trigger: 'blur' }
         ],
         graduationYear: [
-          { type:'year', required: true, message: '请选择毕业年份', trigger: 'change' }
+          { type:'date', required: true, message: '请选择毕业年份', trigger: 'blur' }
         ],
         level: [
-          { required: true, message: '请选择学历', trigger: 'change' }
+          { required: true, message: '请选择学历', trigger: 'blur' }
         ],
         introduce: [
           { required: true, message: '请填写个人介绍/个人经历', trigger: 'blur' }
@@ -383,15 +448,73 @@ export default {
     };
   },
   methods: {
+    // upload(){
+    //   this.resume.studentId = this.studentInfoForm.id
+    //   this.$axios({
+    //     method:'POST',
+    //     url:this.$httpUrl+'/resume/uploadResume',
+    //     data: this.resume
+    //   }).then(res=>res.data).then(res=>{
+    //     if(res.code == 200){
+    //
+    //       this.$message({
+    //         message: '上传成功',
+    //         type: 'success'
+    //       });
+    //     }else{
+    //       this.$message({
+    //         message: '上传失败',
+    //         type: 'error'
+    //       });
+    //     }
+    //   })
+    // },
+    handleSuccess(res){
+      this.studentInfoForm.resume = res.imgUrl
+    },
+    //上传文件让第二次覆盖第一的文件
+    handleChangeFile(file,fileList){
+      // 限制大小在10MB之内
+      let isLt10M = file.size / 1024 / 1024 < 10
+      if(!isLt10M) {
+        this.$message.error("上传文件大小不能超过 10MB!")
+      }
+      if(isLt10M){
+        if (fileList.length>0) {
+          this.fileList=[fileList[fileList.length-1]]
+        }
+      }
+
+    },
+
+    //加载工作数据
+    loadJob(){
+      this.$axios({
+        method:'GET',
+        url:this.$httpUrl+'/job-type/list',
+      }).then(res=>res.data).then(res=>{
+        if(res.code == 200){
+          this.jobData = res.data
+        }
+      })
+    },
+    //加载大学数据
+    loadUniversity(){
+      this.$axios({
+        method:'GET',
+        url:this.$httpUrl+'/university-information/list',
+      }).then(res=>res.data).then(res=>{
+        if(res.code == 200){
+          this.universityData = res.data
+        }
+      })
+    },
     handleChange () {
       var loc = "";
       for (let i = 0; i < this.selectedOptions.length; i++) {
         loc += CodeToText[this.selectedOptions[i]];
       }
-
       this.area = loc
-
-
     },
     //提交修改信息
     submitForm(roleId) {
@@ -400,7 +523,7 @@ export default {
         case 0:
             this.$axios({
             method:'POST',
-            url:this.$httpUrl+'/user/modifyAdmin',
+            url:this.$httpUrl+'/admin-information/modify',
             data: this.adminInfoForm
           }).then(res=>res.data).then(res=>{
             if(res.code == 200){
@@ -420,9 +543,10 @@ export default {
               break;
           //学生
         case 1:
+          console.log(this.studentInfoForm)
             this.$axios({
               method:'POST',
-              url:this.$httpUrl+'/user/modifyStudent',
+              url:this.$httpUrl+'/student-information/modify',
               data: this.studentInfoForm
             }).then(res=>res.data).then(res=>{
               if(res.code == 200){
@@ -445,7 +569,7 @@ export default {
           this.universityInfoForm.address = this.area + this.universityInfoForm.address
             this.$axios({
               method:'POST',
-              url:this.$httpUrl+'/user/modifyUniversity',
+              url:this.$httpUrl+'/university-information/modify',
               data: this.universityInfoForm
             }).then(res=>res.data).then(res=>{
               if(res.code == 200){
@@ -466,10 +590,9 @@ export default {
           //单位
         case 3:
           this.unitInfoForm.address = this.area + this.unitInfoForm.address
-          console.log(this.unitInfoForm)
           this.$axios({
             method:'POST',
-            url:this.$httpUrl+'/user/modifyUnit',
+            url:this.$httpUrl+'/unit-information/modify',
             data: this.unitInfoForm
           }).then(res=>res.data).then(res=>{
             if(res.code == 200){
@@ -496,11 +619,11 @@ export default {
 
     //处理上传头像成功后
     handleAvatarSuccess(res, file) {
-      this.universityInfoForm.logo = URL.createObjectURL(file.raw);
+      this.imgUniv = URL.createObjectURL(file.raw);
       this.universityInfoForm.logo = res.imgUrl
     },
     handleAvatarSuccessUnit(res, file) {
-      this.unitInfoForm.logo = URL.createObjectURL(file.raw);
+      this.imgUnit = URL.createObjectURL(file.raw);
       this.unitInfoForm.logo = res.imgUrl
     },
 

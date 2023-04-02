@@ -4,30 +4,21 @@
       <!--搜索栏-->
       <div style="margin-bottom: 5px;">
         <el-input v-model="name"
-                  placeholder="请输入学校名称"
+                  placeholder="请输入岗位名称"
                   suffix-icon="el-icon-search"
                   @keyup.enter.native="loadPost"
                   style="width: 150px"></el-input>
         <el-select v-model="status"
                    style="width: 100px;margin-left: 5px"
                    placeholder="状态">
-          <el-option label="启用" value="1"></el-option>
-          <el-option label="禁用" value="0"></el-option>
+          <el-option label="等待审批" value="0"></el-option>
+          <el-option label="通过" value="1"></el-option>
+          <el-option label="未通过" value="2"></el-option>
         </el-select>
-        <el-cascader
-            style="width: 200px;margin-left: 5px"
-            size="large"
-            filterable
-            placeholder="请选择省/市/县"
-            :options="options"
-            v-model="selectedOptions"
-            @change="handleChange">
-        </el-cascader>
         <el-button type="primary"
                    style="margin-left: 5px;margin-top: 10px;width: 100px;"
                    @click="loadPost">查询</el-button>
         <el-button type="success" @click="reset" style="margin-left: 5px;width: 100px;">重置</el-button>
-        <el-button type="primary" @click="add" style="margin-left: 5px;width: 100px;">新增</el-button>
       </div>
       <!--数据表格-->
       <el-table :data="tableData"
@@ -37,36 +28,31 @@
             type="selection"
             width="55">
         </el-table-column>
-        <el-table-column prop="username" label="用户名" align="center">
+        <el-table-column prop="title" label="岗位名称" align="center" >
         </el-table-column>
-        <el-table-column prop="password" label="密码" align="center">
+        <el-table-column prop="companyId" label="单位名称" align="center" :formatter="formatUnit">
         </el-table-column>
-        <el-table-column prop="name" label="单位名称" align="center">
+        <el-table-column prop="studentId" label="学生名字" align="center" :formatter="formatStudent">
         </el-table-column>
-        <el-table-column prop="contactPhone" label="联系电话" align="center">
-        </el-table-column>
-        <el-table-column prop="logo" label="logo" align="center">
+        <el-table-column prop="resume" label="简历" align="center" v-if="user.roleId === 3">
           <template slot-scope="scope">
-            <img :src="scope.row.logo" width="60" height="60"/>
+          <a href="">预览</a>
+          <a :href="scope.row.resume" style="margin-left: 2px">下载</a>
           </template>
         </el-table-column>
-        <el-table-column prop="roleId" label="角色" align="center">
-          <el-tag type="danger">
-            {{"单位"}}
-          </el-tag>
+        <el-table-column prop="applyDate" label="申请时间" align="center">
         </el-table-column>
-        <el-table-column prop="status" label="状态" align="center">
+        <el-table-column prop="status" label="审批状态" align="center">
           <template slot-scope="scope">
-            <el-tag :type="scope.row.status === '1' ? 'primary' : 'danger'">
-              {{scope.row.status === '1' ? '启用' : '禁用'}}
-            </el-tag>
+            <el-tag
+                :type="scope.row.status === 2 ? 'danger' : (scope.row.status === 1 ? 'success' : 'primary')"
+                disable-transitions>{{scope.row.status === 0 ? '等待审批' :
+                (scope.row.status === 1 ? '通过,等待通知面试' : '未通过')}}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="operate" label="操作" align="center">
+        <el-table-column prop="operate" label="操作" align="center" v-if="user.roleId === 3">
           <template slot-scope="scope">
-            <el-button type="success" title="编辑"  icon="el-icon-edit" @click="modify(scope.row)" circle></el-button>
-            <el-button title="删除" type="danger" icon="el-icon-delete" @click="deleteById(scope.row.id)" circle></el-button>
-            <el-button  type="primary" @click="lookInfo(scope.row)" style="width: 54px;height: 30px;align-items: center">查看</el-button>
+            <el-button type="success" @click="apply(scope.row)" v-if="scope.row.status===0">审核</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -109,44 +95,33 @@
         <el-button type="primary" @click="save">确 定</el-button>
         </span>
       </el-dialog>
-      <!--      单位详细信息-->
+
+      <!--审批对话框    -->
       <el-dialog
-          :visible.sync="univeInfoDialogVisible"
-          width="50%"
+          title="提示"
+          :visible.sync="applyDialogVisible"
+          width="30%"
           center>
-        <label style="margin-left: 385px;font-size: 30px">学生信息</label>
-        <div style="width: 100%;height: 65vh">
-          <el-descriptions :column="1" size="50" border style="width: 35%;float: left">
-            <el-descriptions-item >
-              <template slot="label" ><i class="el-icon-s-custom"></i>联系人姓名</template>
-              {{this.unitInfo.contactName}}
-            </el-descriptions-item>
-            <el-descriptions-item >
-              <template slot="label"><i class="el-icon-s-custom"></i>联系人电话</template>
-              {{this.unitInfo.contactPhone}}
-            </el-descriptions-item>
-            <el-descriptions-item>
-              <template slot="label"><i class="el-icon-s-custom"></i>学校logo</template>
-              <img :src="this.unitInfo.logo" width="80" height="80">
-            </el-descriptions-item>
-          </el-descriptions>
-
-          <el-descriptions :column="1" size="50" border style="width: 35%;float: right;margin-right: 130px">
-
-            <el-descriptions-item >
-              <template slot="label"><i class="el-icon-s-custom"></i>地址</template>
-              {{this.unitInfo.address}}
-            </el-descriptions-item>
-            <el-descriptions-item >
-              <template slot="label"><i class="el-icon-s-custom"></i>电子邮箱</template>
-              {{this.unitInfo.email}}
-            </el-descriptions-item>
-            <el-descriptions-item >
-              <template slot="label"><i class="el-icon-s-custom"></i>单位简介</template>
-              {{this.unitInfo.description}}
-            </el-descriptions-item>
-          </el-descriptions>
-        </div>
+        <el-form ref="applyForm"
+                 :model="applyForm"
+                 label-width="80px">
+          <el-form-item label="操作">
+            <el-radio-group v-model="applyForm.status">
+              <el-radio label="0">等待审批</el-radio>
+              <el-radio label="1">通过</el-radio>
+              <el-radio label="2">不通过</el-radio>
+            </el-radio-group>
+          </el-form-item>
+          <el-form-item label="原因" prop="reason">
+            <el-col :span="20">
+              <el-input type="textarea" v-model="applyForm.reason"></el-input>
+            </el-col>
+          </el-form-item>
+        </el-form>
+        <span slot="footer" class="dialog-footer">
+        <el-button @click="applyDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="submit">确 定</el-button>
+      </span>
       </el-dialog>
 
     </div>
@@ -157,9 +132,11 @@
 import {CodeToText, regionDataPlus} from "element-china-area-data";
 
 export default {
-  name: "UnitManage",
+  name: "Application",
   beforeMount() {
-    this.loadPost();
+    this.loadPost()
+    this.loadUnit()
+    this.loadStudent()
   },
   data() {
     //添加学生用户的账号是否存在
@@ -181,6 +158,8 @@ export default {
       userData: JSON.parse(sessionStorage.getItem('userData')),
       options: regionDataPlus ,
       selectedOptions: [],
+      StudentData:[],
+      UnitData:[],
       area:'',
       unitInfo:'',
       resume:'',
@@ -192,6 +171,7 @@ export default {
       total:0,
       name:'',
       status:'',
+      applyDialogVisible:false,
       univeInfoDialogVisible:false,
       addDialogVisible:false,
       addForm:{
@@ -200,6 +180,13 @@ export default {
         password:'',
         status: '',
         roleId:'2'
+      },
+      applyForm:{
+        id:'',
+        status:'',
+        reply:'',
+        operatorId: '',
+        applicationId:''
       },
       addRules: {
         username: [
@@ -218,6 +205,94 @@ export default {
 
   },
   methods:{
+
+    modStatus(){
+      this.$axios({
+        method:'GET',
+        url:this.$httpUrl+'/application/update?status='+this.applyForm.status+'&applicationId='+this.applyForm.applicationId,
+      }).then(res=>res.data).then(res=>{
+        if(res.code == 200){
+
+          this.loadPost()
+          this.resetApplyForm()
+        }else{
+          this.$message({
+            message: '修改状态失败',
+            type: 'error'
+          });
+        }
+      })
+    },
+    submit(){
+      this.$axios({
+        method:'POST',
+        url:this.$httpUrl+'/approval-record/save',
+        data: this.applyForm
+      }).then(res=>res.data).then(res=>{
+        if(res.code == 200){
+
+          this.$message({
+            message: '审批成功,请在审批记录中查看',
+            type: 'success'
+          });
+
+          this.applyDialogVisible = false
+          this.modStatus()
+
+        }else{
+          this.$message({
+            message: '审批失败',
+            type: 'error'
+          });
+        }
+      })
+    },
+    apply(row){
+      //console.log(row)
+      this.applyForm.status = row.status+''
+      this.applyForm.applicationId = row.id
+      this.applyForm.operatorId = row.companyId
+      //console.log(this.applyForm)
+      this.applyDialogVisible = true
+
+    },
+
+    //加载单位数据
+    loadUnit(){
+      this.$axios({
+        method:'GET',
+        url:this.$httpUrl+'/unit-information/list',
+      }).then(res=>res.data).then(res=>{
+        if(res.code == 200){
+          this.UnitData = res.data
+        }
+      })
+    },
+    loadStudent(){
+      this.$axios({
+        method:'GET',
+        url:this.$httpUrl+'/student-information/list',
+      }).then(res=>res.data).then(res=>{
+        if(res.code == 200){
+          this.StudentData = res.data
+
+        }
+      })
+    },
+    formatStudent(row){
+      let temp = this.StudentData.find(item=>{
+        return item.studentId == row.studentId
+      })
+
+      return temp && temp.name
+    },
+    formatUnit(row){
+      let temp = this.UnitData.find(item=>{
+        return item.userId == row.companyId
+      })
+
+      return temp && temp.name
+    },
 
     save(){
       this.$refs.addForm.validate((valid) => {
@@ -345,34 +420,18 @@ export default {
 
     },
 
-    //查看学校信息
-    lookInfo(row){
-      this.$axios({
-        method:'GET',
-        url:this.$httpUrl+'/unit-information/listById?user_id='+row.id,
-      }).then(res=>res.data).then(res=>{
-        if(res.code == 200){
-          this.unitInfo = res.data.unitInfo
-        }else{
-          this.unitInfo = ''
-        }
-      })
-
-      this.univeInfoDialogVisible = true
-
-    },
     loadPost(){
       this.$axios({
         method:'POST',
-        url:this.$httpUrl+'/user/listPageUnit',
+        url:this.$httpUrl+'/application/PageApplication',
         data: {
           pageSize:this.pageSize,
           pageNum:this.pageNum,
           param:{
             name:this.name,
             status:this.status,
-            address:this.area,
-            roleId:'3'
+            roleId:this.user.roleId+'',
+            userId:this.user.id+''
           }
         }
       }).then(res=>res.data).then(res=>{
@@ -380,6 +439,7 @@ export default {
         if(res.code == 200){
           this.tableData = res.data
           this.total = res.total
+          console.log(this.tableData)
 
         }else{
           alert('获取数据失败')
@@ -419,6 +479,10 @@ export default {
     //重置添加或修改的表单
     resetAddForm() {
       this.$refs.addForm.resetFields();
+      this.loadPost()
+    },
+    resetApplyForm(){
+      this.$refs.applyForm.resetFields();
       this.loadPost()
     },
   }
