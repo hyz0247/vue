@@ -59,7 +59,7 @@
             <el-option
                 v-for="item in jobData"
                 :key="item.id"
-                :label="item.title"
+                :label="item.name"
                 :value="item.id">
             </el-option>
           </el-select>
@@ -67,7 +67,7 @@
             <el-option
                 v-for="item in jobData"
                 :key="item.id"
-                :label="item.title"
+                :label="item.name"
                 :value="item.id">
             </el-option>
           </el-select>
@@ -75,7 +75,7 @@
             <el-option
                 v-for="item in jobData"
                 :key="item.id"
-                :label="item.title"
+                :label="item.name"
                 :value="item.id">
             </el-option>
           </el-select>
@@ -182,7 +182,7 @@
     </el-form>
 
     <!--    单位信息表-->
-    <el-form v-if="user.roleId === 3" :model="unitInfoForm" :rules="unitRules" ref="studentInfoForm" label-width="150px">
+    <el-form v-if="user.roleId === 3 && !user.affiliation" :model="unitInfoForm" :rules="unitRules" ref="studentInfoForm" label-width="150px">
       <el-form-item label="身份" prop="role">
         <el-tag type="success" disable-transitions>单位</el-tag>
       </el-form-item>
@@ -224,7 +224,7 @@
               v-model="selectedOptions"
               @change="handleChange">
           </el-cascader>
-          <el-input placeholder="详细地址" v-model="unitInfoForm.address" style="width:400px; margin-left: 10px" clearable></el-input>
+          <el-input placeholder="详细地址" v-model="unitInfoForm.address" style="width:500px; margin-left: 10px" clearable></el-input>
         </el-row>
       </el-form-item>
       <el-form-item label="单位描述" prop="description">
@@ -235,6 +235,65 @@
       </el-form-item>
       <el-form-item>
         <el-button type="primary" @click="submitForm(3)">修改</el-button>
+      </el-form-item>
+    </el-form>
+
+    <!--    单位附属信息表-->
+    <el-form v-if="user.roleId === 3 && user.affiliation" :model="unitInfoForm" :rules="unitRules" ref="studentInfoForm" label-width="150px">
+      <el-form-item label="身份" prop="role">
+        <el-tag type="success" disable-transitions>单位</el-tag>
+      </el-form-item>
+      <el-form-item label="logo">
+        <el-upload
+            style="width: 85px;height: 85px;border-radius: 50%; margin:0px 80px;box-sizing: border-box;background-size:cover"
+            class="avatar-uploader"
+            action="http://localhost:8082/user/toUploadAvatar"
+            :show-file-list="false"
+            disabled
+            accept=".jpg,.png,.gif"
+            :on-success="handleAvatarSuccessUnit"
+            :before-upload="beforeAvatarUpload">
+          <img v-if="imgUnit" :src="imgUnit" class="avatar" title="更换头像" style="width: 80px;height: 80px">
+          <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+        </el-upload>
+      </el-form-item>
+      <el-form-item label="用户名" prop="username">
+        <el-input v-model="unitInfoForm.username" disabled style="width: 300px"></el-input>
+      </el-form-item>
+      <el-form-item label="单位名称" prop="name">
+        <el-input v-model="unitInfoForm.name" disabled style="width: 300px"></el-input>
+      </el-form-item>
+      <el-form-item label="联系人名字" prop="contactName">
+        <el-input v-model="unitInfoForm.contactName"  style="width: 300px"></el-input>
+      </el-form-item>
+      <el-form-item label="联系人电话" prop="contactPhone">
+        <el-input v-model="unitInfoForm.contactPhone" style="width: 300px"></el-input>
+      </el-form-item>
+      <el-form-item label="邮箱" prop="email">
+        <el-input v-model="unitInfoForm.email" style="width: 300px"></el-input>
+      </el-form-item>
+      <el-form-item label="地址" prop="address">
+        <el-row>
+          <el-cascader
+              style="width: 300px"
+              size="large"
+              disabled
+              placeholder="请选择省/市/县 + 详细地址------>"
+              :options="options"
+              v-model="selectedOptions"
+              @change="handleChange">
+          </el-cascader>
+          <el-input placeholder="详细地址" v-model="unitInfoForm.address" style="width:500px; margin-left: 10px" disabled clearable></el-input>
+        </el-row>
+      </el-form-item>
+      <el-form-item label="单位描述" prop="description">
+        <el-input disabled type="textarea" v-model="unitInfoForm.description"></el-input>
+      </el-form-item>
+      <el-form-item label="单位网站地址" prop="website">
+        <el-input disabled v-model="unitInfoForm.website" style="width: 300px"></el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="submitForm(3)">提交</el-button>
       </el-form-item>
     </el-form>
   </div>
@@ -266,10 +325,30 @@ export default {
         this.universityInfoForm.userId = this.user.id
           this.imgUniv = this.userData.logo
         break;
-      case 3:this.unitInfoForm = this.userData
-        this.unitInfoForm.username = this.user.username
+      case 3:
+        if(!this.user.affiliation){
+          this.unitInfoForm = this.userData
+          this.unitInfoForm.username = this.user.username
           this.unitInfoForm.userId = this.user.id
-        this.imgUnit = this.userData.logo
+          this.imgUnit = this.userData.logo
+        }else {
+          this.$axios({
+            method:'GET',
+            url:this.$httpUrl+'/unit-information/listById?user_id='+this.user.affiliation,
+          }).then(res=>res.data).then(res=>{
+            if(res.code == 200){
+              this.unitInfoForm = res.data.unitInfo
+              this.imgUnit = res.data.unitInfo.logo
+              this.unitInfoForm.username = this.user.username
+              this.unitInfoForm.id = null
+              this.unitInfoForm.contactName = ''
+              this.unitInfoForm.contactPhone = ''
+              this.unitInfoForm.email = ''
+              this.unitInfoForm.userId = this.user.id
+              console.log(this.unitInfoForm)
+            }
+          })
+        }
         break;
     }
   },
@@ -532,6 +611,7 @@ export default {
                   message: '修改成功',
                   type: 'success'
                 });
+              this.$emit('doFresh')
                   sessionStorage.setItem("userData",JSON.stringify(res.data))
             }else{
                 this.$message({
@@ -555,6 +635,7 @@ export default {
                   message: '修改成功',
                   type: 'success'
                 });
+                this.$emit('doFresh')
                 sessionStorage.setItem("userData",JSON.stringify(res.data))
               }else{
                 this.$message({
@@ -578,6 +659,7 @@ export default {
                   message: '修改成功',
                   type: 'success'
                 });
+                this.$emit('doFresh')
                 sessionStorage.setItem("userData",JSON.stringify(res.data))
               }else{
                 this.$message({
@@ -602,6 +684,7 @@ export default {
                 message: '修改成功',
                 type: 'success'
               });
+              this.$emit('doFresh')
               sessionStorage.setItem("userData",JSON.stringify(res.data))
             }else{
               this.$message({

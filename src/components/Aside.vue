@@ -9,7 +9,7 @@
       <el-submenu :index="item.url" v-for="item in menuList" :key="item.name">
         <template  slot="title"><i :class="item.icon"></i><span>{{item.name}}</span></template>
         <div v-for="child in menu" :key="child.name">
-        <el-menu-item v-if="item.id === child.parentId" :index="'/'+child.url"  :key="child.name">
+        <el-menu-item @click="click(child.menuClick)" v-if="item.id === child.parentId" :index="'/'+child.url"  :key="child.name">
           <i :class="child.icon"></i>{{child.name}}
         </el-menu-item>
         </div>
@@ -25,10 +25,76 @@
 export default {
   name: "Aside",
 
+  methods:{
+
+    click(menuClick){
+      //console.log(menuClick)
+      if (menuClick == 'comment'){
+        //console.log(1)
+        this.comment()
+      }
+      if (menuClick == 'myInfo'){
+        //console.log(2)
+        this.myInfo()
+      }
+      if (menuClick == 'privateMsg'){
+        //console.log(3)
+        this.privateMsg()
+      }
+    },
+    comment(){
+        //console.log(this.updateId)
+        this.$axios({
+          method:'GET',
+          url:this.$httpUrl+'/comment/read?userId='+this.user.id,
+        }).then(res=>res.data).then(res=>{
+          if(res.code == 200){
+            //console.log(res.data)
+            this.$emit('reFresh')
+          }
+        })
+    },
+    myInfo(){
+        //console.log(this.updateId)
+        this.$axios({
+          method:'GET',
+          url:this.$httpUrl+'/messages/readInfo?userId='+this.user.id,
+        }).then(res=>res.data).then(res=>{
+          if(res.code == 200){
+            //console.log(res.data)
+            //this.loadMessages()
+            this.$emit('reFresh')
+
+          }
+        })
+    },
+
+    privateMsg(){
+      setTimeout(()=>{
+        //console.log(this.updateId)
+        this.$axios({
+          method:'GET',
+          url:this.$httpUrl+'/messages/readPrivate?userId='+this.user.id,
+        }).then(res=>res.data).then(res=>{
+          if(res.code == 200){
+            //console.log(res.data)
+            //this.loadMessages()
+            this.$emit('reFresh')
+
+          }
+        })
+      },1000)
+
+      this.privateMsg = null
+    },
+
+
+  },
   computed:{
     "menu":{
       get(){
-        return this.$store.state.menu
+         return this.$store.state.menu
+        //return JSON.parse(sessionStorage.getItem('myMenu'))
       }
     },
     menuList: function () {
@@ -42,10 +108,15 @@ export default {
 
   },
   mounted() {
-
+    //console.log(this.menu)
   },
   data(){
     return {
+      user:JSON.parse(sessionStorage.getItem('user')),
+      infoMsgList:[],
+      updateId:[],
+      myMsgList:[],
+      commentList:[],
 
       // menu_data:[
       //   {

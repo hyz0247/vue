@@ -4,8 +4,11 @@
 
 }
 html{
-overflow: hidden;
-    overflow: auto;
+    /*overflow: hidden;*/
+    /*overflow: auto;*/
+}
+body{
+    margin: 0;
 }
 
 /*  登陆部分  */
@@ -213,3 +216,6 @@ overflow: hidden;
 .el-cascader .el-input .el-input__inner{
     height: 32px;
 }
+/*.el-badge__content.is-fixed{*/
+/*    transform: translateY(10%) translateX(80%);*/
+/*}*/

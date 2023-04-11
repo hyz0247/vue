@@ -32,6 +32,7 @@
                 type="text"
                 placeholder="点击图片更换验证码"
                 name="check"
+                @keyup.enter.native="submitForm"
                 ref="check"
                 v-model="loginForm.checkCode"></el-input>
             <el-image style="margin-bottom: -15px;margin-left: 15px"
@@ -117,6 +118,7 @@ export default {
                   //存储
                   sessionStorage.setItem("userData", JSON.stringify(res.data.personInfo));
                   sessionStorage.setItem("user", JSON.stringify(res.data.user));
+                  //sessionStorage.setItem("myMenu", JSON.stringify(res.data.menu));
 
                   this.$store.dispatch("setMenu",res.data.menu)
 

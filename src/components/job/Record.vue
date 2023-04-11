@@ -36,6 +36,8 @@
         </el-table-column>
         <el-table-column prop="operatorId" label="操作人" align="center" :formatter="formatUnitContactName">
         </el-table-column>
+        <el-table-column prop="reason" label="通知" align="center">
+        </el-table-column>
         <el-table-column prop="updateTime" label="审批时间" align="center">
         </el-table-column>
         <el-table-column prop="status" label="审批状态" align="center">
@@ -43,7 +45,7 @@
             <el-tag
                 :type="scope.row.status === 2 ? 'danger' : (scope.row.status === 1 ? 'success' : 'primary')"
                 disable-transitions>{{scope.row.status === 0 ? '等待审批' :
-                (scope.row.status === 1 ? '通过,等待通知面试' : '未通过')}}</el-tag>
+                (scope.row.status === 1 ? '通过' : '未通过')}}</el-tag>
           </template>
         </el-table-column>
       </el-table>
@@ -400,7 +402,7 @@ export default {
         if(res.code == 200){
           this.tableData = res.data
           this.total = res.total
-          console.log(this.tableData)
+          //console.log(this.tableData)
 
         }else{
           alert('获取数据失败')

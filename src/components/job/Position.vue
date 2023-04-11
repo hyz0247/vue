@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div >
     <div style="background: white;padding: 5px;border-radius: 10px;border: 1px solid black;box-sizing: border-box">
       <!--搜索栏-->
       <div style="margin-top: 10px;display: flex">
@@ -76,7 +76,7 @@
         </el-table-column>
         <el-table-column prop="number" label="需求人数" align="center">
         </el-table-column>
-        <el-table-column prop="publishDate" label="发布时间" align="center">
+        <el-table-column prop="publishDate" label="发布时间" width="200px" align="center">
         </el-table-column>
         <el-table-column prop="isFull" label="是否招满" align="center">
           <template slot-scope="scope">
@@ -94,6 +94,8 @@
             <el-button  type="primary" @click="lookInfo(scope.row)" style="width: 54px;height: 30px;align-items: center">查看</el-button>
             <el-button  type="primary" @click="apply(scope.row)"
                         style="width: 54px;height: 30px;align-items: center" v-if="user.roleId===1">应聘</el-button>
+            <el-button  type="primary" @click="comment(scope.row)"
+                        style="width: 54px;height: 30px;align-items: center" v-if="user.roleId===1">评论</el-button>
 
           </template>
         </el-table-column>
@@ -104,7 +106,7 @@
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
           :current-page="pageNum"
-          :page-sizes="[10, 20, 50, 100]"
+          :page-sizes="[5, 12, 50, 100]"
           :page-size="pageSize"
           layout="total, sizes, prev, pager, next, jumper"
           :total="total">
@@ -250,15 +252,46 @@
           </el-descriptions>
         </div>
       </el-dialog>
+
+      <!--评论对话框  -->
+      <el-dialog
+          title="发表评论"
+          :visible.sync="commentDialogVisible"
+          width="40%"
+          center>
+        <el-form ref="commentForm"
+                 :model="commentForm"
+                 :rules="commentRules"
+                 label-width="80px">
+          <el-form-item label="评论内容" prop="content">
+            <quill-editor class="editor"
+                          ref="myQuillEditor"
+                          v-model="commentForm.content"
+                          :options="editorOption">
+            </quill-editor>
+          </el-form-item>
+        </el-form>
+        <span slot="footer" class="dialog-footer">
+        <el-button @click="cancel">取 消</el-button>
+        <el-button type="primary" @click="subComment">确 定</el-button>
+        </span>
+      </el-dialog>
     </div>
   </div>
 </template>
 
 <script>
 import {CodeToText, regionDataPlus} from "element-china-area-data";
+import {quillEditor} from "vue-quill-editor";
+import "quill/dist/quill.core.css";
+import "quill/dist/quill.snow.css";
+import "quill/dist/quill.bubble.css";
 
 export default {
   name: "Position",
+  components: {
+    quillEditor
+  },
   // beforeMount() {
   //   this.loadPost()
   //   this.loadType()
@@ -270,6 +303,32 @@ export default {
     this.loadUnit()
   },
   methods:{
+
+    subComment(){
+      this.$axios({
+        method:'POST',
+        url:this.$httpUrl+'/comment/save',
+        data: this.commentForm
+      }).then(res=>res.data).then(res=>{
+        if(res.code == 200){
+
+          this.$message({
+            message: '评论成功',
+            type: 'success'
+          });
+
+          this.commentDialogVisible = false
+          this.loadPost()
+          this.$refs.commentForm.resetFields();
+
+        }else{
+          this.$message({
+            message: '评论失败',
+            type: 'error'
+          });
+        }
+      })
+    },
 
     //收藏岗位
     collect(row){
@@ -297,6 +356,14 @@ export default {
           })
         }
       })
+    },
+    //评论岗位
+    comment(row){
+      this.commentForm.userId = this.user.id
+      this.commentForm.jobId = row.id
+      this.commentDialogVisible = true
+      //console.log(this.commentForm)
+
     },
     //应聘岗位
     apply(row){
@@ -408,7 +475,7 @@ export default {
     },
     //点击修改
     modify(row){
-      console.log(row)
+      //console.log(row)
       this.addDialogVisible = true
       this.$nextTick(()=>{
         this.addForm = row
@@ -592,6 +659,28 @@ export default {
   data() {
 
     return {
+      //富文本配置
+      editorOption: {
+        modules: {
+          toolbar: [
+            ['bold', 'italic', 'underline', 'strike'], // 加粗 斜体 下划线 删除线
+            ['blockquote', 'code-block'], // 引用  代码块
+            [{ header: 1 }, { header: 2 }], // 1、2 级标题
+            [{ list: 'ordered' }, { list: 'bullet' }], // 有序、无序列表
+            [{ script: 'sub' }, { script: 'super' }], // 上标/下标
+            [{ indent: '-1' }, { indent: '+1' }], // 缩进
+            [{ direction: 'rtl' }], // 文本方向
+            [{ size: ['12px', false, '16px', '18px', '20px', '30px'] }], // 字体大小
+            [{ header: [1, 2, 3, 4, 5, 6, false] }], // 标题
+            [{ color: [] }, { background: [] }], // 字体颜色、字体背景颜色
+            [{ font: [false, 'SimSun', 'SimHei', 'Microsoft-YaHei', 'KaiTi', 'FangSong', 'Arial'] }], // 字体种类
+            [{ align: [] }], // 对齐方式
+            ['clean'], // 清除文本格式
+            ['link', 'image', 'video']
+          ]// 链接、图片、视频
+        },
+        placeholder: '评论一下吧~~'
+      },
       user: JSON.parse(sessionStorage.getItem('user')),
       userData: JSON.parse(sessionStorage.getItem('userData')),
 
@@ -609,7 +698,7 @@ export default {
       tableData: [],
       TypeData:[],
       pageNum:1,
-      pageSize:20,
+      pageSize:12,
       total:0,
       name:'',
       salaryMin:'',
@@ -619,6 +708,7 @@ export default {
       gender:'',
       status:'',
       addDialogVisible:false,
+      commentDialogVisible:false,
       addForm:{
         id:'',
         companyId:'',
@@ -635,6 +725,18 @@ export default {
         collectNumber:'',
         isFull:'',
         status: '',
+      },
+      commentForm:{
+        id:"",
+        userId:'',
+        content:'',
+        jobId:'',
+        createTime:''
+      },
+      commentRules:{
+        content: [
+          {required: true, message: '请输入评论内容', trigger: 'blur'},
+        ],
       },
       addRules: {
         title: [

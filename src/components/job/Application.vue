@@ -36,7 +36,7 @@
         </el-table-column>
         <el-table-column prop="resume" label="简历" align="center" v-if="user.roleId === 3">
           <template slot-scope="scope">
-          <a href="">预览</a>
+          <a style="cursor: pointer;text-decoration: underline;color: blue;" @click="previewDocx(scope.row)">预览</a>
           <a :href="scope.row.resume" style="margin-left: 2px">下载</a>
           </template>
         </el-table-column>
@@ -68,32 +68,14 @@
           :total="total">
       </el-pagination>
 
-      <!--新增或修改对话框  -->
+      <!--简历预览对话框  -->
       <el-dialog
           title="新增或修改"
-          :visible.sync="addDialogVisible"
-          width="30%"
+          :visible.sync="previewDialogVisible"
+          width="50%"
           center>
-        <el-form ref="addForm"
-                 :model="addForm"
-                 :rules="addRules"
-                 label-width="80px">
-          <el-form-item label="用户名" prop="username">
-            <el-col :span="20"><el-input v-model="addForm.username"></el-input></el-col>
-          </el-form-item>
-          <el-form-item label="密码" prop="password">
-            <el-col :span="20"><el-input v-model="addForm.password"></el-input></el-col>
-          </el-form-item>
-          <el-form-item label="状态" prop="status">
-            <el-switch v-model="addForm.status"
-                       active-value="1"
-                       inactive-value="0"></el-switch>
-          </el-form-item>
-        </el-form>
-        <span slot="footer" class="dialog-footer">
-        <el-button @click="cancel">取 消</el-button>
-        <el-button type="primary" @click="save">确 定</el-button>
-        </span>
+        <div ref="word"></div>
+<!--        <iframe :src="previewUrl" width="100%" height="600px">预览</iframe>-->
       </el-dialog>
 
       <!--审批对话框    -->
@@ -130,7 +112,7 @@
 
 <script>
 import {CodeToText, regionDataPlus} from "element-china-area-data";
-
+let docx = require('docx-preview');
 export default {
   name: "Application",
   beforeMount() {
@@ -139,24 +121,11 @@ export default {
     this.loadStudent()
   },
   data() {
-    //添加学生用户的账号是否存在
-    let checkDuplicate =(rule,value,callback)=>{
-      if(this.addForm.id){
-        return callback();
-      }
-      this.$axios.get(this.$httpUrl+"/user/findByUsername?username="+this.addForm.username).then(res=>{
-        if(res.data.code != 200){
-          callback()
-        }else{
-
-          callback(new Error('账号已经存在'));
-        }
-      })
-    };
     return {
       user: JSON.parse(sessionStorage.getItem('user')),
       userData: JSON.parse(sessionStorage.getItem('userData')),
       options: regionDataPlus ,
+      previewUrl:'',
       selectedOptions: [],
       StudentData:[],
       UnitData:[],
@@ -171,33 +140,25 @@ export default {
       total:0,
       name:'',
       status:'',
+      previewDialogVisible:false,
       applyDialogVisible:false,
       univeInfoDialogVisible:false,
-      addDialogVisible:false,
-      addForm:{
-        id:'',
-        username:'',
-        password:'',
-        status: '',
-        roleId:'2'
-      },
       applyForm:{
         id:'',
         status:'',
         reply:'',
         operatorId: '',
-        applicationId:''
+        applicationId:'',
+        reason:''
       },
-      addRules: {
-        username: [
-          {required: true, message: '请输入账号', trigger: 'blur'},
-          {min: 3, max: 16, message: '长度在 3 到 16 个字符', trigger: 'blur'},
-          {validator:checkDuplicate,trigger: 'blur'}
-        ],
-        password: [
-          {required: true, message: '请输入密码', trigger: 'blur'},
-          {min: 3, max: 8, message: '长度在 3 到 8 个字符', trigger: 'blur'}
-        ],
+      msgForm:{
+        id:'',
+        senderId:'',
+        receiverId:'',
+        type: '',
+        status:0,
+        content:'',
+        sendTime:''
       },
 
 
@@ -205,6 +166,36 @@ export default {
 
   },
   methods:{
+
+    previewDocx(row){
+      //console.log(row.resume)
+      // this.previewUrl = `https://view.officeapps.live.com/op/view.aspx?src=${row.resume}`
+      this.$axios ({
+        method: 'get',
+        responseType: 'blob',
+        url: row.resume,
+      }).then(({data}) => {
+        docx.renderAsync(data,this.$refs.word) // 渲染到页面
+      })
+      this.previewDialogVisible = true
+    },
+
+    saveMsg(){
+      this.msgForm.content = this.applyForm.reason
+      this.$axios({
+        method:'POST',
+        url:this.$httpUrl+'/messages/save',
+        data: this.msgForm
+      }).then(res=>res.data).then(res=>{
+        if(res.code == 200){
+          this.$message({
+            message: '审批成功,并发送通知给该学生',
+            type: 'success'
+          });
+
+        }
+      })
+    },
 
     modStatus(){
       this.$axios({
@@ -231,13 +222,9 @@ export default {
       }).then(res=>res.data).then(res=>{
         if(res.code == 200){
 
-          this.$message({
-            message: '审批成功,请在审批记录中查看',
-            type: 'success'
-          });
-
           this.applyDialogVisible = false
           this.modStatus()
+          this.saveMsg()
 
         }else{
           this.$message({
@@ -253,6 +240,9 @@ export default {
       this.applyForm.applicationId = row.id
       this.applyForm.operatorId = row.companyId
       //console.log(this.applyForm)
+      this.msgForm.senderId = this.user.id
+      this.msgForm.receiverId = row.studentId
+      this.msgForm.type = '通知'
       this.applyDialogVisible = true
 
     },
@@ -294,48 +284,7 @@ export default {
       return temp && temp.name
     },
 
-    save(){
-      this.$refs.addForm.validate((valid) => {
-        if (valid) {
-          if(this.addForm.id){
-            this.doMod()
-          }else{
-            this.doSave()
-          }
 
-        } else {
-          console.log('error submit!!');
-          return false;
-        }
-      });
-    },
-
-    cancel(){
-      this.addDialogVisible = false
-      this.$nextTick(()=>{
-        this.resetAddForm()
-      })
-      this.loadPost();
-    },
-
-    //点击添加
-    add(){
-      this.addDialogVisible = true
-      this.addForm.id = ''
-      this.$nextTick(()=>{
-        this.resetAddForm()
-      })
-
-
-    },
-    //点击修改
-    modify(row){
-      this.addDialogVisible = true
-      this.$nextTick(()=>{
-        this.addForm = row
-      })
-
-    },
     //单个删除
     deleteById(id){
       this.$confirm('此操作将永久删除该数据, 是否删除?', '提示', {
@@ -364,60 +313,6 @@ export default {
           message: '已取消删除'
         });
       });
-    },
-    //做修改
-    doMod(){
-      this.$axios({
-        method:'POST',
-        url:this.$httpUrl+'/user/update',
-        data: this.addForm
-      }).then(res=>res.data).then(res=>{
-        if(res.code == 200){
-
-          this.$message({
-            message: '修改成功',
-            type: 'success'
-          });
-
-          this.addDialogVisible = false
-          this.loadPost()
-          this.resetAddForm()
-
-        }else{
-          this.$message({
-            message: '修改失败',
-            type: 'error'
-          });
-        }
-      })
-    },
-    //做添加
-    doSave(){
-      this.$axios({
-        method:'POST',
-        url:this.$httpUrl+'/user/save',
-        data: this.addForm
-      }).then(res=>res.data).then(res=>{
-        if(res.code == 200){
-
-          this.$message({
-            message: '添加成功',
-            type: 'success'
-          });
-
-          this.addDialogVisible = false
-          this.loadPost()
-          this.resetAddForm()
-
-        }else{
-          this.$message({
-            message: '添加失败',
-            type: 'error'
-          });
-        }
-      })
-
-
     },
 
     loadPost(){

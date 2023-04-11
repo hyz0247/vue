@@ -1,16 +1,16 @@
 <template>
-    <el-container class="body" style="width: 100%;height: 100vh">
+    <el-container class="body" style="width: 100%;height: 100vh;">
       <el-header style="background-color: lightskyblue;">
-        <Header></Header>
+        <Header :key="timer" @reFresh="doFresh"></Header>
       </el-header>
 
-      <el-container style="width: 100%">
+      <el-container style="width: 100%;">
         <el-aside width="12%"  style="background-color: rgba(151,196,253,0.8); height: 100%">
-          <Aside></Aside>
+          <Aside @reFresh="doFresh"></Aside>
         </el-aside>
-<div style="width: 100%">
+<div style="width: 100%;overflow: auto">
       <el-main >
-        <router-view/>
+        <router-view  @doFresh="doFresh"/>
       </el-main>
 </div>
     </el-container>
@@ -25,12 +25,15 @@ export default {
   components: { Header, Aside},
   data(){
     return{
+      timer:'',
       user:JSON.parse(sessionStorage.getItem('user')),
       userData:JSON.parse(sessionStorage.getItem('userData')),
     }
   },
   methods:{
-
+    doFresh(){
+      this.timer = new Date().getTime()
+    },
   }
 
 }

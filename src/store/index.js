@@ -1,6 +1,7 @@
 import vue from 'vue'
 import Vuex from 'vuex'
 import router,{resetRouter} from "@/router";
+import createPersistedState from "vuex-persistedstate"
 vue.use(Vuex)
 
 function addNewRoute(menuList){
@@ -70,6 +71,7 @@ function addNewRoute(menuList){
 
     resetRouter()
     router.addRoutes(routes)
+    //sessionStorage.setItem("menuRouter",JSON.stringify(routes))
 
 }
 
@@ -81,8 +83,10 @@ export default new Vuex.Store({
     },
     mutations:{
         changeMenu(state,menuList) {
-
             state.menu = menuList
+            addNewRoute(menuList)
+        },
+        setRouter(state,menuList) {
             addNewRoute(menuList)
         },
     },
@@ -95,5 +99,10 @@ export default new Vuex.Store({
         getMenu(state){
             return state.menu
         }
-    }
+    },
+    plugins: [
+        createPersistedState({
+            storage: window.localStorage
+        })
+    ]
 })

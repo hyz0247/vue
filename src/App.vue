@@ -10,7 +10,22 @@
 export default {
   name: 'App',
   components: {
-
+  },
+  data(){
+    return{
+      user:JSON.parse(sessionStorage.getItem('user'))
+    }
+  },
+  watch:{
+    '$store.state.menu':{
+      handler(val,old){
+        //console.log(val,old)
+        if (!old && this.user && this.user.id){
+          this.$store.commit("setRouter",val)
+        }
+      },
+      immediate: true
+    }
   }
 
 }
