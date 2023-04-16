@@ -4,7 +4,7 @@
       <!--搜索栏-->
       <div style="margin-bottom: 5px;">
         <el-input v-model="name"
-                  placeholder="请输入学校名称"
+                  placeholder="请输入单位名称"
                   suffix-icon="el-icon-search"
                   @keyup.enter.native="loadPost"
                   style="width: 150px"></el-input>
@@ -389,6 +389,7 @@ export default {
     },
 
     handleChange () {
+      //console.log(this.selectedOptions)
       var loc = "";
       for (let i = 0; i < this.selectedOptions.length; i++) {
         loc += CodeToText[this.selectedOptions[i]];

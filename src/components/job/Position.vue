@@ -30,8 +30,8 @@
             size="large"
             filterable
             placeholder="请选择省/市/县"
-            :options="options"
-            v-model="selectedOptions"
+            :options="searchOptions"
+            v-model="searchSelectedOptions"
             @change="handleChange">
         </el-cascader>
         <el-button type="primary"
@@ -85,7 +85,7 @@
             </el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="operate" label="操作" align="center" width="250px">
+        <el-table-column prop="operate" label="操作" align="center" width="300px">
           <template slot-scope="scope">
             <el-button  type="success" title="编辑"  icon="el-icon-edit" @click="modify(scope.row)"
                         v-if="user.roleId ===3" circle ></el-button>
@@ -96,6 +96,8 @@
                         style="width: 54px;height: 30px;align-items: center" v-if="user.roleId===1">应聘</el-button>
             <el-button  type="primary" @click="comment(scope.row)"
                         style="width: 54px;height: 30px;align-items: center" v-if="user.roleId===1">评论</el-button>
+            <el-button  type="primary" @click="consult(scope.row)"
+                        style="width: 54px;height: 30px;align-items: center" v-if="user.roleId===1">咨询</el-button>
 
           </template>
         </el-table-column>
@@ -166,10 +168,11 @@
                   style="width: 300px"
                   size="large"
                   filterable
+                  :props="{ expandTrigger: 'hover' }"
                   placeholder="请选择省/市/县 + 详细地址------>"
                   :options="options"
                   v-model="selectedOptions"
-                  @change="handleChange">
+                  @change="handleAddChange">
               </el-cascader>
               <el-input placeholder="详细地址" v-model="addForm.location" style="width:500px;" clearable></el-input>
             </el-row>
@@ -357,6 +360,19 @@ export default {
         }
       })
     },
+    //咨询聊天
+    consult(row){
+      this.$axios.get(this.$httpUrl+'/user/listById?userId='+row.companyId).then(res=>res.data).then(res=>{
+        this.$router.push({
+          name:'我的私信',
+          params:{
+            username:res.data.username
+          }
+        })
+      })
+
+    },
+
     //评论岗位
     comment(row){
       this.commentForm.userId = this.user.id
@@ -402,12 +418,30 @@ export default {
       }
 
     },
+    handleAddChange(){
+      var loc = "";
+      for (let i = 0; i < this.selectedOptions.length; i++) {
+        loc += CodeToText[this.selectedOptions[i]];
+      }
+      this.addArea = loc
+      let i = this.addArea.indexOf('全部',0)
+      if (i>0){
+        this.addArea = this.addArea.substring(0,i)
+      }
+      if(loc == "全部"){
+        this.addArea = ''
+      }
+    },
     handleChange () {
       var loc = "";
       for (let i = 0; i < this.selectedOptions.length; i++) {
         loc += CodeToText[this.selectedOptions[i]];
       }
       this.area = loc
+      let i = this.area.indexOf('全部',0)
+      if (i>0){
+        this.area = this.area.substring(0,i)
+      }
       if(loc == "全部"){
         this.area = ''
       }
@@ -539,6 +573,10 @@ export default {
     },
     //做添加
     doSave(){
+      this.addForm.companyId = this.user.id
+      this.addForm.location = this.addArea + this.addForm.location
+      this.addForm.isFull = 1
+      //console.log(this.addForm)
       this.$axios({
         method:'POST',
         url:this.$httpUrl+'/job/save',
@@ -590,7 +628,7 @@ export default {
           param:{
             name:this.name,
             location:this.area,
-            unit:this.unit,
+            unit:this.unit+'',
             salaryMin:this.salaryMin,
             salaryMax:this.salaryMax,
             roleId: this.user.roleId+'',
@@ -615,7 +653,7 @@ export default {
     loadType(){
       this.$axios({
         method:'GET',
-        url:this.$httpUrl+'/job-type/list',
+        url:this.$httpUrl+'/job-type/listTypeParent',
       }).then(res=>res.data).then(res=>{
         if(res.code == 200){
 
@@ -630,7 +668,7 @@ export default {
     loadUnit(){
       this.$axios({
         method:'GET',
-        url:this.$httpUrl+'/unit-information/list',
+        url:this.$httpUrl+'/unit-information/listUnit',
       }).then(res=>res.data).then(res=>{
         if(res.code == 200){
           this.unitData = res.data
@@ -687,9 +725,12 @@ export default {
       icon:false,
 
       options: regionDataPlus ,
+      searchOptions:regionDataPlus,
       selectedOptions: [],
+      searchSelectedOptions:[],
       jobDialogVisible:false,
       area:'',
+      addArea:'',
       unitInfo:'',
       jobInfo:'',
       jobTypeInfo:'',
@@ -722,8 +763,8 @@ export default {
         location:'',
         description:'',
         publishDate:'',
-        collectNumber:'',
-        isFull:'',
+        collectNumber:0,
+        isFull:1,
         status: '',
       },
       commentForm:{

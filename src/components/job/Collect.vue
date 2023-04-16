@@ -458,7 +458,7 @@ export default {
     loadUnit(){
       this.$axios({
         method:'GET',
-        url:this.$httpUrl+'/unit-information/list',
+        url:this.$httpUrl+'/unit-information/listUnit',
       }).then(res=>res.data).then(res=>{
         if(res.code == 200){
           this.unitData = res.data

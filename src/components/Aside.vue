@@ -70,22 +70,21 @@ export default {
     },
 
     privateMsg(){
-      setTimeout(()=>{
-        //console.log(this.updateId)
-        this.$axios({
-          method:'GET',
-          url:this.$httpUrl+'/messages/readPrivate?userId='+this.user.id,
-        }).then(res=>res.data).then(res=>{
-          if(res.code == 200){
-            //console.log(res.data)
-            //this.loadMessages()
-            this.$emit('reFresh')
+      // setTimeout(()=>{
+      //   //console.log(this.updateId)
+      //   this.$axios({
+      //     method:'GET',
+      //     url:this.$httpUrl+'/messages/readPrivate?userId='+this.user.id,
+      //   }).then(res=>res.data).then(res=>{
+      //     if(res.code == 200){
+      //       //console.log(res.data)
+      //       //this.loadMessages()
+      //       this.$emit('reFresh')
+      //
+      //     }
+      //   })
+      // },1000)
 
-          }
-        })
-      },1000)
-
-      this.privateMsg = null
     },
 
 

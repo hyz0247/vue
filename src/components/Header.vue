@@ -17,12 +17,12 @@
             <el-dropdown-item style="display: flex" @click.native="toInfo">我的通知
               <el-badge :value="infoMsg" :max="99" class="item"  v-if="infoMsg != 0"></el-badge>
             </el-dropdown-item>
-            <el-dropdown-item style="display: flex" @click.native="toMyMsg">我的私信
-              <el-badge :value="myMsg" :max="99" class="item"  v-if="myMsg != 0"></el-badge>
+            <el-dropdown-item style="display: flex;margin-left: 1px" @click.native="toMyMsg">我的私信
+              <el-badge :value="myMsg=myMsg-read" :max="99" class="item"  v-if="myMsg != 0"></el-badge>
             </el-dropdown-item>
         </el-dropdown-menu>
       </el-dropdown>
-      <el-badge :value="msg" :max="99" class="myMessage" v-if="msg != 0"></el-badge>
+      <el-badge :value="msg=msg-read" :max="99" class="myMessage" v-if="msg != 0"></el-badge>
 
     </div>
     <el-dropdown style="cursor: pointer">
@@ -62,10 +62,7 @@ export default {
     //this.$router.push("/Personal")
   },
   mounted() {
-
     this.loadMessages()
-    //this.info()
-
   },
   methods:{
 
@@ -236,7 +233,8 @@ export default {
     }
   },
   props:{
-    icon:String
+    icon:String,
+    read:Number
   }
 }
 </script>

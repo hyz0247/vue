@@ -1,7 +1,8 @@
 <template>
   <div>
     <!--    学生信息表-->
-    <el-form v-if="user.roleId === 1" :model="studentInfoForm" :rules="studentInfoRules" ref="studentInfoForm" label-width="150px">
+    <el-form v-if="user.roleId === 1" :model="studentInfoForm"
+             :rules="studentInfoRules" ref="studentInfoForm" label-width="150px">
     <el-form-item label="身份" prop="role">
       <el-tag type="success" disable-transitions>学生</el-tag>
     </el-form-item>
@@ -55,30 +56,36 @@
     </el-form-item>
       <el-form-item label="工作意向">
         <el-row>
-          <el-select v-model="studentInfoForm.job1Id" placeholder="工作意向1" filterable style="width: 120px">
-            <el-option
-                v-for="item in jobData"
-                :key="item.id"
-                :label="item.name"
-                :value="item.id">
-            </el-option>
-          </el-select>
-          <el-select v-model="studentInfoForm.job2Id" placeholder="工作意向2" filterable style="width: 120px;margin-left: 2px">
-            <el-option
-                v-for="item in jobData"
-                :key="item.id"
-                :label="item.name"
-                :value="item.id">
-            </el-option>
-          </el-select>
-          <el-select v-model="studentInfoForm.job3Id" placeholder="工作意向3" filterable style="width: 120px;margin-left: 2px">
-            <el-option
-                v-for="item in jobData"
-                :key="item.id"
-                :label="item.name"
-                :value="item.id">
-            </el-option>
-          </el-select>
+          <el-cascader
+              style="width: 150px"
+              v-model="studentInfoForm.job1Id"
+              :options="jobTypeoptions"
+              :show-all-levels="false"
+              placeholder="工作意向1"
+              clearable
+              filterable
+              :props="{ expandTrigger: 'hover',emitPath: false }">
+          </el-cascader>
+          <el-cascader
+              style="width: 150px;margin-left: 5px"
+              v-model="studentInfoForm.job2Id"
+              :options="jobTypeoptions"
+              :show-all-levels="false"
+              placeholder="工作意向2"
+              clearable
+              filterable
+              :props="{ expandTrigger: 'hover',emitPath: false }">
+          </el-cascader>
+          <el-cascader
+              style="width: 150px;margin-left: 5px"
+              v-model="studentInfoForm.job3Id"
+              :options="jobTypeoptions"
+              :show-all-levels="false"
+              placeholder="工作意向3"
+              clearable
+              filterable
+              :props="{ expandTrigger: 'hover',emitPath: false }">
+          </el-cascader>
         </el-row>
       </el-form-item>
       <el-form-item label="个人简历" prop="resume">
@@ -103,7 +110,8 @@
   </el-form>
 
     <!--    管理员信息表-->
-    <el-form v-if="user.roleId === 0" :model="adminInfoForm" :rules="adminInfoRules" ref="studentInfoForm" label-width="150px">
+    <el-form v-if="user.roleId === 0" :model="adminInfoForm"
+             :rules="adminInfoRules" ref="studentInfoForm" label-width="150px">
     <el-form-item label="身份" prop="role">
       <el-tag type="success" disable-transitions>管理员</el-tag>
     </el-form-item>
@@ -125,9 +133,11 @@
   </el-form>
 
     <!--    学校信息表-->
-    <el-form v-if="user.roleId === 2" :model="universityInfoForm" :rules="universityRules" ref="studentInfoForm" label-width="150px">
+    <el-form v-if="user.roleId === 2 && !user.affiliation"
+             :model="universityInfoForm"
+             :rules="universityRules" ref="studentInfoForm" label-width="150px">
       <el-form-item label="身份" prop="role">
-        <el-tag type="success" disable-transitions>学校/学院</el-tag>
+        <el-tag type="success" disable-transitions>学校</el-tag>
       </el-form-item>
       <el-form-item label="logo" prop="upload">
         <el-upload
@@ -181,8 +191,55 @@
       </el-form-item>
     </el-form>
 
+    <!--    二级学院信息表-->
+    <el-form v-if="user.roleId === 2 && user.affiliation"
+             :model="universityInfoForm" :rules="universityRules"
+             ref="studentInfoForm" label-width="150px">
+      <el-form-item label="身份" prop="role">
+        <el-tag type="success" disable-transitions>二级学院</el-tag>
+      </el-form-item>
+      <el-form-item label="logo">
+        <el-upload
+            style="width: 85px;height: 85px;border-radius: 50%; margin:0px 80px;box-sizing: border-box;background-size:cover"
+            class="avatar-uploader"
+            action="http://localhost:8082/user/toUploadAvatar"
+            :show-file-list="false"
+            accept=".jpg,.png,.gif"
+            :on-success="handleAvatarSuccess"
+            :before-upload="beforeAvatarUpload">
+          <img v-if="imgUniv" :src="imgUniv" class="avatar" title="更换头像" style="width: 80px;height: 80px">
+          <i v-else class="el-icon-plus avatar-uploader-icon"></i>
+        </el-upload>
+      </el-form-item>
+      <el-form-item label="用户名" prop="username">
+        <el-input v-model="universityInfoForm.username" disabled style="width: 300px"></el-input>
+      </el-form-item>
+      <el-form-item label="学院名称" prop="name">
+        <el-input v-model="universityInfoForm.name" style="width: 300px"></el-input>
+      </el-form-item>
+      <el-form-item label="联系人名字" prop="contactName">
+        <el-input v-model="universityInfoForm.contactName"  style="width: 300px"></el-input>
+      </el-form-item>
+      <el-form-item label="联系人电话" prop="contactPhone">
+        <el-input v-model="universityInfoForm.contactPhone" style="width: 300px"></el-input>
+      </el-form-item>
+      <el-form-item label="邮箱" prop="email">
+        <el-input v-model="universityInfoForm.email" style="width: 300px"></el-input>
+      </el-form-item>
+      <el-form-item label="学院描述" prop="description">
+        <el-input type="textarea" v-model="universityInfoForm.description" style="width: 300px"></el-input>
+      </el-form-item>
+      <el-form-item label="学院网站地址" prop="website">
+        <el-input v-model="universityInfoForm.website" style="width: 300px"></el-input>
+      </el-form-item>
+      <el-form-item>
+        <el-button type="primary" @click="submitForm(2)">提交</el-button>
+      </el-form-item>
+    </el-form>
+
     <!--    单位信息表-->
-    <el-form v-if="user.roleId === 3 && !user.affiliation" :model="unitInfoForm" :rules="unitRules" ref="studentInfoForm" label-width="150px">
+    <el-form v-if="user.roleId === 3 && !user.affiliation"
+             :model="unitInfoForm" :rules="unitRules" ref="studentInfoForm" label-width="150px">
       <el-form-item label="身份" prop="role">
         <el-tag type="success" disable-transitions>单位</el-tag>
       </el-form-item>
@@ -228,7 +285,7 @@
         </el-row>
       </el-form-item>
       <el-form-item label="单位描述" prop="description">
-        <el-input type="textarea" v-model="unitInfoForm.description"></el-input>
+        <el-input type="textarea" v-model="unitInfoForm.description" style="width: 300px"></el-input>
       </el-form-item>
       <el-form-item label="单位网站地址" prop="website">
         <el-input v-model="unitInfoForm.website" style="width: 300px"></el-input>
@@ -239,7 +296,8 @@
     </el-form>
 
     <!--    单位附属信息表-->
-    <el-form v-if="user.roleId === 3 && user.affiliation" :model="unitInfoForm" :rules="unitRules" ref="studentInfoForm" label-width="150px">
+    <el-form v-if="user.roleId === 3 && user.affiliation"
+             :model="unitInfoForm" :rules="unitRules" ref="studentInfoForm" label-width="150px">
       <el-form-item label="身份" prop="role">
         <el-tag type="success" disable-transitions>单位</el-tag>
       </el-form-item>
@@ -287,7 +345,7 @@
         </el-row>
       </el-form-item>
       <el-form-item label="单位描述" prop="description">
-        <el-input disabled type="textarea" v-model="unitInfoForm.description"></el-input>
+        <el-input disabled type="textarea" v-model="unitInfoForm.description" style="width: 300px"></el-input>
       </el-form-item>
       <el-form-item label="单位网站地址" prop="website">
         <el-input disabled v-model="unitInfoForm.website" style="width: 300px"></el-input>
@@ -308,7 +366,7 @@ export default {
 
   beforeMount() {
     this.loadUniversity()
-    this.loadJob()
+    this.loadJobType()
   },
   mounted() {
     switch (this.user.roleId){
@@ -320,10 +378,38 @@ export default {
         this.studentInfoForm.username = this.user.username
         this.studentInfoForm.studentId = this.user.id
         break;
-      case 2:this.universityInfoForm = this.userData
-        this.universityInfoForm.username = this.user.username
-        this.universityInfoForm.userId = this.user.id
+      case 2:
+        if (!this.user.affiliation){
+          this.universityInfoForm = this.userData
+          this.universityInfoForm.username = this.user.username
+          this.universityInfoForm.userId = this.user.id
           this.imgUniv = this.userData.logo
+        }else {
+          if (!this.userData){
+            this.$axios({
+              method:'GET',
+              url:this.$httpUrl+'/university-information/listById?user_id='+this.user.affiliation,
+            }).then(res=>res.data).then(res=>{
+              if(res.code == 200){
+                this.universityInfoForm = res.data
+                this.imgUnit = res.data.unitInfo.logo
+                this.universityInfoForm.username = this.user.username
+                this.universityInfoForm.userId = this.user.id
+                this.universityInfoForm.id = null
+                this.universityInfoForm.contactPhone = ''
+                this.universityInfoForm.contactName = ''
+                this.universityInfoForm.name = ''
+              }
+            })
+          }else {
+            this.universityInfoForm = this.userData
+            this.universityInfoForm.username = this.user.username
+            this.universityInfoForm.userId = this.user.id
+            this.imgUniv = this.userData.logo
+
+          }
+        }
+
         break;
       case 3:
         if(!this.user.affiliation){
@@ -332,22 +418,28 @@ export default {
           this.unitInfoForm.userId = this.user.id
           this.imgUnit = this.userData.logo
         }else {
-          this.$axios({
-            method:'GET',
-            url:this.$httpUrl+'/unit-information/listById?user_id='+this.user.affiliation,
-          }).then(res=>res.data).then(res=>{
-            if(res.code == 200){
-              this.unitInfoForm = res.data.unitInfo
-              this.imgUnit = res.data.unitInfo.logo
-              this.unitInfoForm.username = this.user.username
-              this.unitInfoForm.id = null
-              this.unitInfoForm.contactName = ''
-              this.unitInfoForm.contactPhone = ''
-              this.unitInfoForm.email = ''
-              this.unitInfoForm.userId = this.user.id
-              console.log(this.unitInfoForm)
-            }
-          })
+          if (!this.userData){
+            this.$axios({
+              method:'GET',
+              url:this.$httpUrl+'/unit-information/listById?user_id='+this.user.affiliation,
+            }).then(res=>res.data).then(res=>{
+              if(res.code == 200){
+                this.unitInfoForm = res.data
+                this.imgUnit = res.data.unitInfo.logo
+                this.unitInfoForm.username = this.user.username
+                this.unitInfoForm.userId = this.user.id
+                this.unitInfoForm.id = null
+                this.unitInfoForm.contactPhone = ''
+                this.unitInfoForm.contactName = ''
+              }
+            })
+          }else {
+            this.unitInfoForm = this.userData
+            this.unitInfoForm.username = this.user.username
+            this.unitInfoForm.userId = this.user.id
+            this.imgUnit = this.userData.logo
+          }
+
         }
         break;
     }
@@ -360,6 +452,7 @@ export default {
     return{
       universityData:[],
       jobData:[],
+      jobTypeoptions:[],
       options: regionData ,
       selectedOptions: [],
       user:'',
@@ -566,14 +659,15 @@ export default {
 
     },
 
-    //加载工作数据
-    loadJob(){
+    //加载工作类型
+    loadJobType(){
       this.$axios({
         method:'GET',
-        url:this.$httpUrl+'/job-type/list',
+        url:this.$httpUrl+'/job-type/typeList',
       }).then(res=>res.data).then(res=>{
         if(res.code == 200){
-          this.jobData = res.data
+          this.jobTypeoptions = res.data
+          //console.log(this.options)
         }
       })
     },
@@ -623,7 +717,7 @@ export default {
               break;
           //学生
         case 1:
-          console.log(this.studentInfoForm)
+          //console.log(this.studentInfoForm)
             this.$axios({
               method:'POST',
               url:this.$httpUrl+'/student-information/modify',

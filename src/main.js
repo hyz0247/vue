@@ -6,6 +6,8 @@ import 'element-ui/lib/theme-chalk/index.css';
 import VueRouter from "vue-router";
 import router from "@/router";
 import store from "@/store";
+import echarts from 'echarts'
+Vue.prototype.$echarts = echarts
 
 
 

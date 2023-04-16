@@ -123,7 +123,7 @@ export default {
                   this.$store.dispatch("setMenu",res.data.menu)
 
                   //登录成功跳转主页
-                   this.$router.replace('/Index')
+                   this.$router.push('/Personal')
 
                   this.$message({
                     message: '恭喜你，登录成功',
