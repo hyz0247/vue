@@ -187,6 +187,8 @@ body{
 }
 .el-descriptions-item__cell .el-descriptions-item__label.is-bordered-label{
     margin-left: 30px;
+    display: flex;
+    flex-wrap: wrap;
 }
 .el-tooltip__popper {
     max-width: 180px;

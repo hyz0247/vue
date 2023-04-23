@@ -90,7 +90,7 @@
       </el-form-item>
       <el-form-item label="个人简历" prop="resume">
         <el-upload
-            :limit="2"
+            :limit="1"
             :on-change="handleChangeFile"
             :on-success="handleSuccess"
             accept=".doc,.docx"
@@ -102,7 +102,7 @@
 <!--        <el-button type="primary" @click="upload">确认上传</el-button>-->
       </el-form-item>
     <el-form-item label="个人经历/个人简介" prop="introduce">
-      <el-input type="textarea" v-model="studentInfoForm.introduce" style="width: 300px"></el-input>
+      <el-input type="textarea" v-model="studentInfoForm.introduce" style="width: 400px"></el-input>
     </el-form-item>
     <el-form-item>
       <el-button type="primary" @click="submitForm(1)">修改</el-button>
@@ -116,7 +116,7 @@
       <el-tag type="success" disable-transitions>管理员</el-tag>
     </el-form-item>
     <el-form-item label="用户名" prop="username">
-      <el-input v-model="adminInfoForm.username" disabled style="width: 300px"></el-input>
+      <el-input v-model="adminInfoForm.username" style="width: 300px"></el-input>
     </el-form-item>
     <el-form-item label="姓名" prop="name">
       <el-input v-model="adminInfoForm.name" style="width: 300px"></el-input>
@@ -284,8 +284,8 @@
           <el-input placeholder="详细地址" v-model="unitInfoForm.address" style="width:500px; margin-left: 10px" clearable></el-input>
         </el-row>
       </el-form-item>
-      <el-form-item label="单位描述" prop="description">
-        <el-input type="textarea" v-model="unitInfoForm.description" style="width: 300px"></el-input>
+      <el-form-item label="单位描述" prop="description" >
+        <el-input type="textarea" v-model="unitInfoForm.description" style="width: 500px"></el-input>
       </el-form-item>
       <el-form-item label="单位网站地址" prop="website">
         <el-input v-model="unitInfoForm.website" style="width: 300px"></el-input>
@@ -527,6 +527,9 @@ export default {
       },
       //管理员信息表校验
       adminInfoRules: {
+        username: [
+          {required: true, message: '请输入用户名', trigger: 'blur' }
+        ],
         name: [
           {required: true, message: '请输入姓名', trigger: 'blur' }
         ],

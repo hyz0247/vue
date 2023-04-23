@@ -53,12 +53,15 @@
         <el-table-column prop="password" label="密码" align="center" v-if="(this.user.roleId ===0) || (this.user.roleId ===2)">
         </el-table-column>
         <el-table-column prop="name" label="姓名" align="center">
+          <template slot-scope="scope">
+            {{scope.row.name == null?'未知':scope.row.name}}
+          </template>
         </el-table-column>
         <el-table-column prop="gender" label="性别" align="center">
           <template slot-scope="scope">
             <el-tag :type="scope.row.gender === '1' ? 'primary' : 'danger'">
               <i :class="scope.row.gender === '1'?'el-icon-male':(scope.row.gender === '1' ?'el-icon-female':'')">
-              </i>{{scope.row.gender === '1'?"男":(scope.row.gender === '1' ?"女":'')}}</el-tag>
+              </i>{{scope.row.gender === '1'?"男":(scope.row.gender === '1' ?"女":'未知')}}</el-tag>
           </template>
         </el-table-column>
         <el-table-column prop="createtime" label="创建时间" align="center">
@@ -130,8 +133,8 @@
           :visible.sync="personDialogVisible"
           width="50%"
           center>
-        <label style="margin-left: 385px;font-size: 30px">学生信息</label>
-        <div style="width: 100%;height: 65vh">
+        <label style="margin-left: 360px;font-size: 30px">学生信息</label>
+        <div style="width: 100%;height: 68vh">
         <el-descriptions :column="1" size="50" border style="width: 35%;float: left">
           <el-descriptions-item >
             <template slot="label" ><i class="el-icon-s-custom"></i>姓名</template>
@@ -179,7 +182,8 @@
             </el-descriptions-item>
             <el-descriptions-item >
               <template slot="label"><i class="el-icon-s-custom"></i>个人简历</template>
-              <a v-if="this.resume !=null" :href="this.studentInfo.resume">下载</a>
+              <a v-if="this.resume != null" :href="this.studentInfo.resume">下载</a>
+              <a style="margin-left: 5px;cursor: pointer;text-decoration: underline;color: blue;" @click="previewDocx">预览</a>
             </el-descriptions-item>
             <el-descriptions-item>
               <template slot="label"><i class="el-icon-s-custom"></i>工作意向</template>
@@ -201,6 +205,14 @@ export default {
   },
   methods:{
 
+    //预览简历
+    previewDocx(){
+      let routeUrl = this.$router.resolve({
+        path: "/DocxPreview",
+        query: {resume:this.studentInfo.resume}
+      });
+      window.open(routeUrl.href, '_blank');
+    },
     //查看学生信息
     lookInfo(row){
       this.$axios({

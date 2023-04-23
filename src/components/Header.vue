@@ -3,7 +3,7 @@
   <div style="margin-top: 8px;padding-left: 10px">
     <i :class="icon" style="font-size: 20px;cursor: pointer" @click="collapse"></i>
   </div>
-  <div style="flex: 1;text-align: center;font-size: 40px;color: #333333;font-family: 华文中宋;height: 40px;margin-left: 260px">
+  <div style="flex: 1;text-align: center;font-size: 40px;color: #333333;font-family: 华文中宋;height: 40px;margin-left: 260px;">
     <span >欢迎来到后台管理系统</span>
   </div>
     <div style="margin-right: 30px">

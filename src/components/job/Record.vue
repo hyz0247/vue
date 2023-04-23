@@ -44,8 +44,8 @@
           <template slot-scope="scope">
             <el-tag
                 :type="scope.row.status === 2 ? 'danger' : (scope.row.status === 1 ? 'success' : 'primary')"
-                disable-transitions>{{scope.row.status === 0 ? '等待审批' :
-                (scope.row.status === 1 ? '通过' : '未通过')}}</el-tag>
+                disable-transitions>{{scope.row.status === 1 ? '通过' :
+                (scope.row.status === 2 ? '未通过' : (scope.row.status === 3 ? '已通知面试' : '已录取'))}}</el-tag>
           </template>
         </el-table-column>
       </el-table>

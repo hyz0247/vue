@@ -1,12 +1,12 @@
 <template>
   <div style="height: 100%;">
-    <el-menu background-color="#545c64"
-             text-color="#ffffff"
+    <el-menu background-color="#ffffff"
+             text-color="#000000"
              active-text-color="#ffd04b"
              class="el-menu-vertical-demo"
              router>
       <template>
-      <el-submenu :index="item.url" v-for="item in menuList" :key="item.name">
+      <el-submenu :index="item.url" v-for="item in menuList" :key="item.name ">
         <template  slot="title"><i :class="item.icon"></i><span>{{item.name}}</span></template>
         <div v-for="child in menu" :key="child.name">
         <el-menu-item @click="click(child.menuClick)" v-if="item.id === child.parentId" :index="'/'+child.url"  :key="child.name">

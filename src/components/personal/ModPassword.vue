@@ -6,13 +6,13 @@
            label-width="100px"
            class="demo-ruleForm">
     <el-form-item label="旧密码" prop="oldPass">
-      <el-input type="password" show-password v-model="ModPassForm.oldPass"></el-input>
+      <el-input style="width: 200px" type="password" show-password v-model="ModPassForm.oldPass"></el-input>
     </el-form-item>
     <el-form-item label="密码" prop="pass">
-      <el-input type="password" show-password v-model="ModPassForm.pass"></el-input>
+      <el-input style="width: 200px" type="password" show-password v-model="ModPassForm.pass"></el-input>
     </el-form-item>
     <el-form-item label="确认密码" prop="checkPass">
-      <el-input type="password" show-password v-model="ModPassForm.checkPass"></el-input>
+      <el-input style="width: 200px" type="password" show-password v-model="ModPassForm.checkPass"></el-input>
     </el-form-item>
     <el-form-item>
       <el-button type="primary" @click="submitForm">确认</el-button>

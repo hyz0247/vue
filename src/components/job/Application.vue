@@ -47,12 +47,15 @@
             <el-tag
                 :type="scope.row.status === 2 ? 'danger' : (scope.row.status === 1 ? 'success' : 'primary')"
                 disable-transitions>{{scope.row.status === 0 ? '等待审批' :
-                (scope.row.status === 1 ? '通过,等待通知面试' : '未通过')}}</el-tag>
+                (scope.row.status === 1 ? '通过,等待通知面试' : (scope.row.status === 2 ? '未通过' : (scope.row.status === 3 ? '已通知面试' : '已录取')))}}</el-tag>
           </template>
         </el-table-column>
-        <el-table-column prop="operate" label="操作" align="center" v-if="user.roleId === 3">
+        <el-table-column prop="operate" label="操作" align="center" width="250px">
           <template slot-scope="scope">
             <el-button type="success" @click="apply(scope.row)" v-if="scope.row.status===0">审核</el-button>
+            <el-button type="success" @click="info(scope.row)" v-if="scope.row.status === 1">通知面试</el-button>
+            <el-button type="success" @click="admitted(scope.row)" v-if="scope.row.status === 3">录取</el-button>
+            <el-button type="success" @click="look(scope.row)">流程</el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -68,13 +71,19 @@
           :total="total">
       </el-pagination>
 
-      <!--简历预览对话框  -->
+      <!--查看状态对话框  -->
       <el-dialog
-          title="新增或修改"
+          title="审批状态"
           :visible.sync="previewDialogVisible"
           width="50%"
           center>
-        <div ref="word"></div>
+        <el-steps :active="active" :finish-status="'success'" v-if="this.appStatus !== 2">
+          <el-step title="等待审批"></el-step>
+          <el-step title="是否通过" :status="appStatus"></el-step>
+          <el-step title="已通知面试"></el-step>
+          <el-step title="已录取"></el-step>
+        </el-steps>
+<!--        <div ref="word"></div>-->
 <!--        <iframe :src="previewUrl" width="100%" height="600px">预览</iframe>-->
       </el-dialog>
 
@@ -106,13 +115,34 @@
       </span>
       </el-dialog>
 
+      <!--通知对话框对话框    -->
+      <el-dialog
+          title="通知"
+          :visible.sync="infoDialogVisible"
+          width="30%"
+          center>
+        <el-form ref="msgForm"
+                 :model="msgForm"
+                 label-width="80px">
+          <el-form-item label="通知消息" prop="content">
+            <el-col :span="20">
+              <el-input type="textarea" v-model="msgForm.content"></el-input>
+            </el-col>
+          </el-form-item>
+        </el-form>
+        <span slot="footer" class="dialog-footer">
+        <el-button @click="infoDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="sendInfo">确 定</el-button>
+      </span>
+      </el-dialog>
+
     </div>
   </div>
 </template>
 
 <script>
 import {CodeToText, regionDataPlus} from "element-china-area-data";
-let docx = require('docx-preview');
+// let docx = require('docx-preview');
 export default {
   name: "Application",
   beforeMount() {
@@ -126,6 +156,8 @@ export default {
       userData: JSON.parse(sessionStorage.getItem('userData')),
       options: regionDataPlus ,
       previewUrl:'',
+      success:'success',
+      error:'error',
       selectedOptions: [],
       StudentData:[],
       UnitData:[],
@@ -139,9 +171,15 @@ export default {
       pageSize:20,
       total:0,
       name:'',
+      jobId:0,
       status:'',
+      active:0,
+      applicationStatus:10,
+      appStatus:'success',
+      applicationId:'',
       previewDialogVisible:false,
       applyDialogVisible:false,
+      infoDialogVisible:false,
       univeInfoDialogVisible:false,
       applyForm:{
         id:'',
@@ -166,30 +204,96 @@ export default {
 
   },
   methods:{
+    // 点击录取
+    admitted(row){
+      // id:'',
+      //     senderId:'',
+      //     receiverId:'',
+      //     type: '',
+      //     status:0,
+      //     content:'',
+      //     sendTime:''
+      this.jobId = row.jobId
+      this.applicationId = row.id
+      this.msgForm.senderId = this.user.id
+      this.msgForm.receiverId = row.studentId
+      this.msgForm.type = '通知'
+      this.applicationStatus = row.status
+      this.infoRecord(row)
+      this.infoDialogVisible = true
 
-    previewDocx(row){
-      //console.log(row.resume)
-      // this.previewUrl = `https://view.officeapps.live.com/op/view.aspx?src=${row.resume}`
-      this.$axios ({
-        method: 'get',
-        responseType: 'blob',
-        url: row.resume,
-      }).then(({data}) => {
-        docx.renderAsync(data,this.$refs.word) // 渲染到页面
-      })
-      this.previewDialogVisible = true
+
     },
+    //点击流程
+    look(row){
 
-    saveMsg(){
-      this.msgForm.content = this.applyForm.reason
+      if (row.status === 0){
+        this.appStatus = ''
+        this.active = 0
+      }else if (row.status === 1){
+        this.appStatus = 'success'
+        this.active = 2
+      }
+      else if (row.status === 2){
+        this.appStatus = 'error'
+        this.active = 2
+      }else if (row.status === 3){
+        this.appStatus = 'success'
+        this.active = 3
+      }else if (row.status === 4){
+        this.appStatus = 'success'
+        this.active = 4
+      }
+      this.previewDialogVisible = true
+
+    },
+    //点击通知面试
+    info(row){
+      this.msgForm.senderId = this.user.id
+      this.msgForm.receiverId = row.studentId
+      this.applicationId = row.id
+      this.msgForm.type = '通知'
+      this.applicationStatus = row.status
+      this.infoRecord(row)
+      this.infoDialogVisible = true
+
+    },
+    reduceJobNum(){
+      this.$axios({
+        method:'GET',
+        url:this.$httpUrl+'/job/reduce?jobId='+this.jobId,
+      }).then(res=>res.data).then(res=>{
+        if(res.code == 200){
+          //console.log(1)
+        }
+      })
+    },
+    // 发送通知
+    sendInfo(){
       this.$axios({
         method:'POST',
         url:this.$httpUrl+'/messages/save',
         data: this.msgForm
       }).then(res=>res.data).then(res=>{
         if(res.code == 200){
+          this.infoDialogVisible = false
+
+          if (this.applicationStatus === 3){
+            //console.log(1)
+            this.modStatus("4")
+            this.infoSubmit()
+            this.reduceJobNum()
+            this.msgForm.content = ''
+          }else{
+            //console.log(2)
+            this.modStatus("3")
+            this.infoSubmit()
+
+          }
+
+          this.loadPost()
           this.$message({
-            message: '审批成功,并发送通知给该学生',
+            message: '已发送通知给该学生',
             type: 'success'
           });
 
@@ -197,10 +301,31 @@ export default {
       })
     },
 
-    modStatus(){
+    //预览简历
+    previewDocx(row){
+      let routeUrl = this.$router.resolve({
+        path: "/DocxPreview",
+        query: {resume:row.resume}
+      });
+      window.open(routeUrl.href, '_blank');
+
+      //console.log(row.resume)
+      // this.previewUrl = `https://view.officeapps.live.com/op/view.aspx?src=${row.resume}`
+      // this.$axios ({
+      //   method: 'get',
+      //   responseType: 'blob',
+      //   url: row.resume,
+      // }).then(({data}) => {
+      //   docx.renderAsync(data,this.$refs.word) // 渲染到页面
+      // })
+      //this.previewDialogVisible = true
+    },
+
+    //修改状态
+    modStatus(status){
       this.$axios({
         method:'GET',
-        url:this.$httpUrl+'/application/update?status='+this.applyForm.status+'&applicationId='+this.applyForm.applicationId,
+        url:this.$httpUrl+'/application/update?status='+status+'&applicationId='+this.applicationId,
       }).then(res=>res.data).then(res=>{
         if(res.code == 200){
 
@@ -214,6 +339,29 @@ export default {
         }
       })
     },
+    infoRecord(row){
+      if (this.applicationStatus === 3){
+        this.applyForm.status = '4'
+      }else this.applyForm.status = '3'
+
+      this.applyForm.applicationId = row.id
+      this.applicationId = row.id
+      this.applyForm.operatorId = row.companyId
+    },
+    // 添加通知记录
+    infoSubmit(){
+      this.applyForm.reason = this.msgForm.content
+      this.$axios({
+        method:'POST',
+        url:this.$httpUrl+'/approval-record/save',
+        data: this.applyForm
+      }).then(res=>res.data).then(res=>{
+        if(res.code == 200){
+          //this.saveMsg()
+
+        }
+      })
+    },
     submit(){
       this.$axios({
         method:'POST',
@@ -223,8 +371,8 @@ export default {
         if(res.code == 200){
 
           this.applyDialogVisible = false
-          this.modStatus()
-          this.saveMsg()
+          this.modStatus(this.applyForm.status)
+          //this.saveMsg()
 
         }else{
           this.$message({
@@ -238,11 +386,9 @@ export default {
       //console.log(row)
       this.applyForm.status = row.status+''
       this.applyForm.applicationId = row.id
+      this.applicationId = row.id
       this.applyForm.operatorId = row.companyId
       //console.log(this.applyForm)
-      this.msgForm.senderId = this.user.id
-      this.msgForm.receiverId = row.studentId
-      this.msgForm.type = '通知'
       this.applyDialogVisible = true
 
     },
@@ -258,6 +404,7 @@ export default {
         }
       })
     },
+
     loadStudent(){
       this.$axios({
         method:'GET',
@@ -269,6 +416,7 @@ export default {
         }
       })
     },
+
     formatStudent(row){
       let temp = this.StudentData.find(item=>{
         return item.studentId == row.studentId
@@ -276,43 +424,13 @@ export default {
 
       return temp && temp.name
     },
+
     formatUnit(row){
       let temp = this.UnitData.find(item=>{
         return item.userId == row.companyId
       })
 
       return temp && temp.name
-    },
-
-
-    //单个删除
-    deleteById(id){
-      this.$confirm('此操作将永久删除该数据, 是否删除?', '提示', {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning'
-      }).then(() => {
-        //用户点击确认按钮
-        //发送ajax请求，添加数据
-        this.$axios({
-          method:"GET",
-          url:this.$httpUrl+"/user/deleteById?id="+id
-        }).then(resp =>{
-          if(resp.data.code == 200){
-            this.loadPost();
-            //弹出消息提示
-            this.$message({
-              message:'恭喜你，删除成功',
-              type:'success'
-            })
-          }
-        })
-      }).catch(() => {
-        this.$message({
-          type: 'info',
-          message: '已取消删除'
-        });
-      });
     },
 
     loadPost(){
@@ -334,7 +452,7 @@ export default {
         if(res.code == 200){
           this.tableData = res.data
           this.total = res.total
-          console.log(this.tableData)
+          //console.log(this.tableData)
 
         }else{
           alert('获取数据失败')

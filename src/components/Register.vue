@@ -1,5 +1,5 @@
 <template>
-  <el-button></el-button>
+  <el-button>注册</el-button>
 </template>
 
 <script>

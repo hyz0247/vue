@@ -1,11 +1,11 @@
 <template>
-    <el-container class="body" style="width: 100%;height: 100vh;">
-      <el-header style="background-color: lightskyblue;">
+    <el-container class="body" style="width: 100%;height: 100vh;box-sizing:border-box;background-color: #FAF2F2">
+      <el-header style="background-color:#FFFFFF;border-radius: 10px;margin: 5px 15px 5px 15px">
         <Header :key="timer" @reFresh="doFresh" :read="msgNum"></Header>
       </el-header>
 
       <el-container style="width: 100%;">
-        <el-aside width="12%"  style="background-color: rgba(151,196,253,0.8); height: 100%">
+        <el-aside width="12%"  style="background-color:rgba(255,255,255,0); height: 100%;margin-left: 15px;margin-top:10px;border-radius: 10px">
           <Aside @reFresh="doFresh"></Aside>
         </el-aside>
 <div style="width: 100%;overflow: auto">

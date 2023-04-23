@@ -129,7 +129,7 @@
           :visible.sync="jobDialogVisible"
           width="50%"
           center>
-        <label style="margin-left: 385px;font-size: 30px">学生信息</label>
+        <label style="margin-left: 385px;font-size: 30px">岗位信息</label>
         <div style="width: 100%;height: 65vh">
           <el-descriptions :column="1" size="50" border style="width: 35%;float: left">
             <el-descriptions-item >

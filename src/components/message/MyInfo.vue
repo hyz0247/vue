@@ -56,6 +56,7 @@ export default {
     },
 
     formatUser(row){
+      //console.log(row.roleId)
       let temp
       switch (row.roleId){
         case 0:
@@ -75,9 +76,9 @@ export default {
           return temp && temp.name
         case 3:
           temp = this.unitData.find(item=>{
-            return item.userId == row.userId
+            return item.userId == row.senderId
           })
-          return temp && temp.name
+          return temp && temp.contactName
       }
     },
 

@@ -18,6 +18,16 @@ const routes = [
         component:()=>import('../components/Register')
     },
     {
+        path:'/UnitDetails',
+        name:'unitDetails',
+        component:()=>import('../components/front/UnitDetails')
+    },
+    {
+        path:'/DocxPreview',
+        name:'docxPreview',
+        component:()=>import('../components/job/DocxPreview')
+    },
+    {
         path:'/Index',
         name:'index',
         component:()=>import('../components/Index'),
@@ -46,8 +56,13 @@ router.beforeEach(((to, from, next) => {
     let tmp = sessionStorage.getItem('user')
     const user = tmp && JSON.parse(tmp)
     if (to.path !== '/' && !user) {
-        alert("您还没登陆,请先登陆后再访问")
-        next('/')
+        if ( to.path === "/UnitDetails" || to.path === "/Register"){
+            console.log(1)
+        }else {
+            alert("您还没登陆,请先登陆后再访问")
+            next('/')
+        }
+
     }
     next()
 }))

@@ -57,7 +57,7 @@
         </el-table-column>
         <el-table-column prop="title" label="岗位名称" align="center">
         </el-table-column>
-        <el-table-column prop="typeId" label="类型" align="center" :formatter="formatType">
+        <el-table-column prop="typeId" label="类型" align="center" :formatter="formatAllType">
         </el-table-column>
         <el-table-column prop="salary" label="薪资" align="center">
           <template slot-scope="scope">
@@ -93,7 +93,7 @@
                        v-if="user.roleId ===3" circle></el-button>
             <el-button  type="primary" @click="lookInfo(scope.row)" style="width: 54px;height: 30px;align-items: center">查看</el-button>
             <el-button  type="primary" @click="apply(scope.row)"
-                        style="width: 54px;height: 30px;align-items: center" v-if="user.roleId===1">应聘</el-button>
+                        style="width: 54px;height: 30px;align-items: center" v-if="user.roleId===1 && scope.row.isFull ==1">应聘</el-button>
             <el-button  type="primary" @click="comment(scope.row)"
                         style="width: 54px;height: 30px;align-items: center" v-if="user.roleId===1">评论</el-button>
             <el-button  type="primary" @click="consult(scope.row)"
@@ -304,6 +304,7 @@ export default {
     this.loadPost()
     this.loadType()
     this.loadUnit()
+    this.loadAllType()
   },
   methods:{
 
@@ -450,7 +451,12 @@ export default {
       let temp = this.TypeData.find(item=>{
         return item.id == row.typeId
       })
-
+      return temp && temp.name
+    },
+    formatAllType(row){
+      let temp = this.allTypeData.find(item=>{
+        return item.id == row.typeId
+      })
       return temp && temp.name
     },
     //查看岗位信息
@@ -650,6 +656,20 @@ export default {
       })
     },
     //加载获取岗位类型名
+    loadAllType(){
+      this.$axios({
+        method:'GET',
+        url:this.$httpUrl+'/job-type/list',
+      }).then(res=>res.data).then(res=>{
+        if(res.code == 200){
+
+          this.allTypeData = res.data
+
+        }else{
+          alert('获取数据失败')
+        }
+      })
+    },
     loadType(){
       this.$axios({
         method:'GET',
@@ -738,6 +758,7 @@ export default {
       job:'',
       tableData: [],
       TypeData:[],
+      allTypeData:[],
       pageNum:1,
       pageSize:12,
       total:0,
